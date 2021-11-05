@@ -39,9 +39,9 @@
 
 import board
 import displayio
-import time
+# import time
 from neopixel import NeoPixel
-import countio
+# import countio
 from adafruit_lis3mdl import LIS3MDL
 from adafruit_lsm6ds.lsm6ds33 import LSM6DS33
 from adafruit_apds9960.apds9960 import APDS9960
@@ -58,6 +58,8 @@ from adafruit_display_shapes.sparkline import Sparkline
 import keypad
 import gc
 
+# print("Startup mem_free: {}".format(gc.mem_free()))
+
 i2c = board.I2C()
 
 ## Mag
@@ -67,13 +69,13 @@ mag = LIS3MDL(i2c)
 ## Gyro/Accel
 
 acc = LSM6DS33(i2c)
-acc_irq_counter = countio.Counter(board.ACCELEROMETER_GYRO_INTERRUPT)
+# acc_irq_counter = countio.Counter(board.ACCELEROMETER_GYRO_INTERRUPT)
 
 ## Light/Gesture/Color
 
 apds = APDS9960(i2c)
-apds.proximity_interrupt_threshold = (0, 100, 4)
-apds_irq_counter = countio.Counter(board.PROXIMITY_LIGHT_INTERRUPT)
+# apds.proximity_interrupt_threshold = (0, 100, 4)
+# apds_irq_counter = countio.Counter(board.PROXIMITY_LIGHT_INTERRUPT)
 
 ## Temperature/Pressure/Altitude BMP280
 
@@ -103,13 +105,13 @@ def normalized_rms(values):
 
 ## Helper: IRQ pulse count checker
 
-def count_checker(pulse_counter: countio.Counter) -> int:
-    if pulse_counter.count > 0:
-        current_count = pulse_counter.count
-        pulse_counter.reset
-        return current_count
-    else:
-        return 0
+# def count_checker(pulse_counter: countio.Counter) -> int:
+#     if pulse_counter.count > 0:
+#         current_count = pulse_counter.count
+#         pulse_counter.reset
+#         return current_count
+#     else:
+#         return 0
 
 ## Buttons
 
@@ -143,6 +145,8 @@ pixels_keys = NeoPixel(board.D10, 2, brightness=0.1)
 pixels_keys[0] = (50, 50, 50)
 pixels_keys[1] = (50, 50, 50)
 
+# print("Device setup complete, mem_free: {}".format(gc.mem_free()))
+
 ## Display
 
 displayio.release_displays()
@@ -159,24 +163,10 @@ font = terminalio.FONT
 splash = displayio.Group()
 display.show(splash)
 
-# Background Sprite
-bg_palette = displayio.Palette(1)
-bg_palette[0] = 0x000000 # Black
-fg_palette = displayio.Palette(1)
-fg_palette[0] = 0xFFFFFF # White
-
-inner_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 2)
-inner_sprite = displayio.TileGrid(inner_bitmap, pixel_shader=bg_palette, x=BORDER, y=BORDER)
-splash.append(inner_sprite)
-
-# Draw some white squares
-sm_square_bitmap = displayio.Bitmap(2, 2, 1)
-sm_square = displayio.TileGrid(sm_square_bitmap, pixel_shader=fg_palette, x=64, y=60)
-splash.append(sm_square)
+# print("Display init complete, mem_free: {}".format(gc.mem_free()))
 
 # Set up Page Numbers text area
 page_text = "[{}/{}]"
-
 page_label = Label(font, text=page_text.format(0,0), padding_top=0, padding_bottom=0)
 page_label.anchor_point = (1.0, 0.0)
 page_label.anchored_position = (128, 0)
@@ -221,19 +211,12 @@ color_label.anchored_position = (0, 60)
 color_label.hidden = True
 splash.append(color_label)
 
-prox_text = "Prox: {:6d}"
-prox_label = Label(font, text=prox_text.format(0, 0, 0, 0), padding_top=0, padding_bottom=0, line_spacing=0.7)
+prox_text = "Prox: {:6d}\nGesture:   {:1d}"
+prox_label = Label(font, text=prox_text.format(0, 0), padding_top=0, padding_bottom=0, line_spacing=0.7)
 prox_label.anchor_point = (0.0, 1.0)
-prox_label.anchored_position = (55, 50)
+prox_label.anchored_position = (55, 60)
 prox_label.hidden = True
 splash.append(prox_label)
-
-gesture_text = "Gesture:   {:1d}"
-gesture_label = Label(font, text=gesture_text.format(0), padding_top=0, padding_bottom=0, line_spacing=0.7)
-gesture_label.anchor_point = (0.0, 1.0)
-gesture_label.anchored_position = (55, 60)
-gesture_label.hidden = True
-splash.append(gesture_label)
 
 # Set up temp/pressure/altitude
 temp_text = "Temp:      {:6.2f} C\nPressure: {:7.2f} hPa\nAltitude: {:7.2f} m\nHumidity: {:7.2f} %"
@@ -251,6 +234,7 @@ mic_label.anchored_position = (0, 60)
 mic_label.hidden = True
 splash.append(mic_label)
 
+## Set up PDM microphone sound level sparkline
 mic_sparkline_max_entries = 16
 mic_sparkline = Sparkline(
     width=126, height=30,
@@ -259,11 +243,10 @@ mic_sparkline = Sparkline(
     x=1, 
     y=16)
 mic_sparkline.hidden = True
-mic_sparkline.clear_values()
-sparklist = [1] * mic_sparkline_max_entries
-mic_sparkline._spark_list = sparklist
+mic_sparkline._spark_list = [1] * mic_sparkline_max_entries
 splash.append(mic_sparkline)
 mic_cycle_count = 0
+gc.collect()
 
 # Set up internals label
 cpu_text = "CPU\nFreq: {:9.1f} MHz\nTemp: {:9.1f} C\nVolts: {:8.3} V\nMem Free: {:5d} bytes"
@@ -273,11 +256,12 @@ cpu_label.anchored_position = (0, 60)
 cpu_label.hidden = True
 splash.append(cpu_label)
 
+# print("Display label setup complete, mem_free: {}".format(gc.mem_free()))
 
 # Prep for Loop and Loop
 reverse = False
 pause = False
-page = 6
+page = 1
 page_max = 6
 pagechange = True
 page_label.text = page_text.format(page, page_max)
@@ -285,18 +269,19 @@ gc.collect()
 while True:
 
     ## Handle IRQ events
-    acc_irq_events = count_checker(acc_irq_counter)
-    apds_irq_events = count_checker(apds_irq_counter)
+    # acc_irq_events = count_checker(acc_irq_counter)
+    # apds_irq_events = count_checker(apds_irq_counter)
 
-    if acc_irq_events:
-        print("{} accelerometer IRQ events detected".format(acc_irq_events))
-    if apds_irq_events:
-        print("{} APDS9960 IRQ events detected, threshold: {}, prox: {}".format(apds_irq_events, apds.proximity_interrupt_threshold, apds.proximity))
+    # if acc_irq_events:
+    #     print("{} accelerometer IRQ events detected".format(acc_irq_events))
+    # if apds_irq_events:
+    #     print("{} APDS9960 IRQ events detected, threshold: {}, prox: {}".format(apds_irq_events, apds.proximity_interrupt_threshold, apds.proximity))
 
     ## Handle button/key inputs for page changes and animation pauses
     should_pause = False
     should_page = False
     should_page_to = 0
+    should_print_mem = False
     new_events = retrieve_key_events(keys)
     if len(new_events) > 0:
         for e in new_events:
@@ -329,6 +314,12 @@ while True:
                         else:
                             pagechange = True
                         pixel_board[0] = (0, 0, 50)
+                elif e.key_number is 2:
+                    if not should_print_mem:
+                        should_print_mem = True
+
+    if should_print_mem:
+        print("mem_free: {}".format(gc.mem_free()))                        
 
     if should_pause:
         pause = not pause
@@ -341,7 +332,7 @@ while True:
 
     ## Handle page changes
     if pagechange:
-        print("Page changed to page #{}".format(page))
+        # print("Page changing to page #{}, mem free: {}".format(page, gc.mem_free()))
         page_label.text = page_text.format(page, page_max)
         if page == 1:
             title_label.text = "LIS3MDL"
@@ -354,7 +345,6 @@ while True:
             # Hide page 3
             color_label.hidden = True
             prox_label.hidden = True
-            gesture_label.hidden = True
             # Hide page 4
             temp_label.hidden = True
             # Hide page 5
@@ -379,7 +369,6 @@ while True:
             # Hide page 3
             color_label.hidden = True
             prox_label.hidden = True
-            gesture_label.hidden = True
             # Hide page 4
             temp_label.hidden = True
             # Hide page 5
@@ -404,7 +393,6 @@ while True:
             # Show page 3
             color_label.hidden = False
             prox_label.hidden = False
-            gesture_label.hidden = False
             # Hide page 4
             temp_label.hidden = True
             # Hide page 5
@@ -415,7 +403,7 @@ while True:
             # Enable Page 3 sensors/features
             apds.enable_color = True
             apds.enable_proximity = True
-            apds.enable_proximity_interrupt = True
+            # apds.enable_proximity_interrupt = True
             apds.enable_gesture = True
             # Disable page 4 unused sensors/features
             bmp280.mode = adafruit_bmp280.MODE_SLEEP
@@ -429,7 +417,6 @@ while True:
             # Hide page 3
             color_label.hidden = True
             prox_label.hidden = True
-            gesture_label.hidden = True
             # Show page 4
             temp_label.hidden = False
             # Hide page 5
@@ -454,7 +441,6 @@ while True:
             # Hide page 3
             color_label.hidden = True
             prox_label.hidden = True
-            gesture_label.hidden = True
             # Hide page 4
             temp_label.hidden = True
             # Show page 5
@@ -467,7 +453,7 @@ while True:
             apds.enable_proximity = False
             apds.enable_proximity_interrupt = False
             apds.enable_gesture = False
-            # Enable page 4 unused sensors/features
+            # Disable page 4 unused sensors/features
             bmp280.mode = adafruit_bmp280.MODE_SLEEP
         elif page == 6:
             title_label.text = "Internals"
@@ -479,7 +465,6 @@ while True:
             # Hide page 3
             color_label.hidden = True
             prox_label.hidden = True
-            gesture_label.hidden = True
             # Hide page 4
             temp_label.hidden = True
             # Hide page 5
@@ -492,9 +477,11 @@ while True:
             apds.enable_proximity = False
             apds.enable_proximity_interrupt = False
             apds.enable_gesture = False
-            # Enable page 4 unused sensors/features
+            # Disable page 4 unused sensors/features
             bmp280.mode = adafruit_bmp280.MODE_SLEEP
 
+        gc.collect()
+        # print("Page changed to page #{}, mem free: {}".format(page, gc.mem_free()))
         pagechange = False
 
     # Update sensor data and display only if sensors are on the page
@@ -520,9 +507,7 @@ while True:
         color_r, color_g, color_b, color_c = apds.color_data
         color_label.text = color_text.format(color_r, color_g, color_b, color_c)
         # Prox update
-        prox_label.text = prox_text.format(apds.proximity)
-        # Gesture update
-        gesture_label.text = gesture_text.format(apds.gesture())
+        prox_label.text = prox_text.format(apds.proximity, apds.gesture())
 
         # Test APDS Interrupt Status
         # print("APDS IRQ: Value: {}, Rose: {}, Fell: {}".format(apds_irq_sw.value, apds_irq_sw.rose, apds_irq_sw.fell))
@@ -549,17 +534,18 @@ while True:
 
     ## Handle scrolling loop indicator
     ### Move that little box
-    if not pause:
-        if reverse:
-            new_x_2 = sm_square.x + 1
-            sm_square.x = new_x_2
-            if new_x_2 > 125:
-                reverse = False
-        else:
-            new_x_2 = sm_square.x - 1
-            sm_square.x = new_x_2
-            if new_x_2 < 0:
-                reverse = True
+    # if not pause:
+    #     if reverse:
+    #         new_x_2 = sm_square.x + 1
+    #         sm_square.x = new_x_2
+    #         if new_x_2 > 125:
+    #             reverse = False
+    #     else:
+    #         new_x_2 = sm_square.x - 1
+    #         sm_square.x = new_x_2
+    #         if new_x_2 < 0:
+    #             reverse = True
       
-    time.sleep(0.005)
+    gc.collect()
+    # time.sleep(0.005)
     # time.sleep(0.2)
