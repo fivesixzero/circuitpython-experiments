@@ -360,6 +360,8 @@ while True:
             # Hide page 5
             mic_label.hidden = True
             mic_sparkline.hidden = True
+            # Hide page 6
+            cpu_label.hidden = True
             # Disable page 3 unused sensors/features
             apds.enable_color = False
             apds.enable_proximity = False
@@ -383,6 +385,8 @@ while True:
             # Hide page 5
             mic_label.hidden = True
             mic_sparkline.hidden = True
+            # Hide page 6
+            cpu_label.hidden = True
             # Disable page 3 unused sensors/features
             apds.enable_color = False
             apds.enable_proximity = False
@@ -406,6 +410,8 @@ while True:
             # Hide page 5
             mic_label.hidden = True
             mic_sparkline.hidden = True
+            # Hide page 6
+            cpu_label.hidden = True
             # Enable Page 3 sensors/features
             apds.enable_color = True
             apds.enable_proximity = True
@@ -429,6 +435,8 @@ while True:
             # Hide page 5
             mic_label.hidden = True
             mic_sparkline.hidden = True
+            # Hide page 6
+            cpu_label.hidden = True
             # Disable page 3 unused sensors/features
             apds.enable_color = False
             apds.enable_proximity = False
@@ -452,6 +460,8 @@ while True:
             # Show page 5
             mic_label.hidden = False
             mic_sparkline.hidden = False
+            # Hide page 6
+            cpu_label.hidden = True
             # Disable page 3 unused sensors/features
             apds.enable_color = False
             apds.enable_proximity = False
