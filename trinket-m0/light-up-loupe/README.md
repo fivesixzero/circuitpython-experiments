@@ -2,6 +2,8 @@
 
 Bringing some (highly configurable) light to an inexpensive $8 Carson loupe with CircuitPython and a NeoPixel ring.
 
+<img width=500 src="./light-up-loupe-prototype.jpg">
+
 ## Parts
 
 ### Critical Parts
@@ -26,7 +28,7 @@ Bringing some (highly configurable) light to an inexpensive $8 Carson loupe with
 * Adafruit Half-Size Perma-Proto PCB
   * Key Specs: _a prototyper's best friend <3_
   * Adafruit: <https://www.adafruit.com/product/1609>
-* Potentiomter
+* Potentiometer
   * Key Specs: _10k, linear, breadboard friendly_
   * Adafruit: <https://www.adafruit.com/product/562>
 * Tactile Switch x3
@@ -61,7 +63,7 @@ The customized CircuitPython 7.0.0 Trinket M0 `uf2` binary included here was bui
 * Light Position Control
   * Press `D1` and `D2` to rotate the illumination pattern around the ring.
   * Useful for partial-illumination modes, useless if all of the pixels are lit with the same color. :)
-* Brigthness Control
+* Brightness Control
   * Rotate the `D3` potentiometer to adjust the brightness of the lighting.
 
 ## To Do
