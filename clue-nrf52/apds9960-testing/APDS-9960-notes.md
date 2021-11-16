@@ -294,7 +294,7 @@ def gesture_engine(self) -> None:
 
 ### Gesture Driver Implementation
 
-TODO
+See [Gesture Engine Notes](./APDS-9960-gesture-notes.md) for more info. Definitely deserves its own document.
 
 ### Bug Analysis/Fix: Proximity sticks 51 with gesture enabled
 
