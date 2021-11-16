@@ -49,6 +49,12 @@ Projects/Guides/Example Code:
 * `pdx.edu`: [Programming the Adafruit Feather nRF52840 Sense: Detecting Light Intensity](https://web.cecs.pdx.edu/~gerry/class/feather_sense/on-board/ambientLight/)
   * This uses Arduino rather than CircuitPython but is still potentially relevant
 
+### Boards to Test With
+
+In particular, I'm mostly focusing on the Clue for initial functionality testing since its got a display and a pair of buttons for human interfacing.
+
+But before landing on any proper solutions I'll be testing on the Proximity Trinkey as a most-constrained-case type thing. Its just got a SAMD21, which is still quite capable but is much more constrained in memory (32k!) and storage (just 256k flash!).
+
 ## Links
 
 * CircuitPython Driver Code: [Adafruit_CircuitPython_APDS9960](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960)
