@@ -2,6 +2,13 @@
 
 Testing the APDS9960's individual functions on the Adafruit Clue nRF52840.
 
+## Deep Notes
+
+* [APDS-9960 Notes](./APDS-9960-notes.md)
+    * Detailed notes covering state machine operations, control registers, and observations while developing, testing, and bug-fixing
+* [Gesture Engine Notes](./APDS-9960-gesture-notes.md)
+    * A detour into the world of APDS-9960 gesture sensor data handling, which is a bit more complicated than it seems
+
 ## Overview
 
 The APDS9960 is a complex I2C peripheral, packing three related but distinctly different functions into a very tiny package.
