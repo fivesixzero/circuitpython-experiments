@@ -686,16 +686,93 @@ TODO
 * Gesture cannot operate without proximity enabled
 * `WTIME`/`WLONG` & `WEN` should be configured before `AEN` or `PEN` are asserted
 
+### Sensible Defaults
+
+Given how configurable this sensor is, finding sensible defaults takes a lot of work. But without those, the device's default setup is likely to be very unreliable for most use cases.
+
+#### SparkFun Driver Defaults
+
+The SparkFun driver is, thus far, the most comprehensive example I've found when it comes to proper defaults.
+
+Here are the values they landed on, broken out by subsystem future reference.
+
+* Device
+    * `WLONG` (`CONFIG1[1]`, `0x83[1]`): False (`0b0`)
+        * No wait time multiplier
+    * `WTIME`  (`0x83`): `0xF6` (`0b11110110`)
+        * `246` dec, `256 - 246` = `10` value
+        * `10 * 2.78 ms` = `27.8 ms`
+        * Time between prox/gesture at device level is `27.8 ms`
+    * `SAI` (`CONFIG3[4]`, `0x9F[4]`): False (`0xb0`)
+        * No sleep-after-interrupt at the end of a full device cycle
+* Shared Prox/Gesture Values
+    * `LEDBOOST` (`CONFIG2[5:4]`, `0x90[5:4]`): `0x00` (`0b00`)
+        * LED drive boost multiplier set to `1x`
+* Proximity Engine
+    * `PPULSE` (`0x8E`): `0x87` (`0b10000111`)
+        * `PPULSE<PPULSE>`: `0x07` (`0b000111`)
+            * `8` LED pulses
+        * `PPULSE<PPLEN>`: `0x02` (`0b10`)
+            * `16 us` LED pulse length
+    * `LDRIVE` (`CONTROL[7:6]`, `0x8F[7:6]`): `0x0` (`0b00`)
+        * LED drive at `100 mA`
+    * `PGAIN` (`CONTROL[3:2]`, `0x8F[3:2]`): `0x2` (`0b10`)
+        * `4x` photodiode ADC gain during proximity measurements 
+    * `PMASK` (`CONFIG3[3:0]`, `0x9F[3:0]`):  `0x0` (`0xb0000`)
+        * No photodiodes masked, all enabled
+    * `PCMP` (`CONFIG3[5]`, `0x9F[5]`): False (`0xb0`)
+        * No proximity gain compensation
+    * `PILT` (`0x89`): `0x0` (`0b00000000`)
+        * Low proximity threshold at `0`
+    * `PIHT` (`0x8B`): `0x32` (`0b00110010`)
+        * High proximity threshold at `50`
+    * `PPERS` (`PERS[3:0]`, `0x8C[7:4]`): `0x01` (`0b0001`)
+        * One out-of-range proximity value triggers internal interrupt
+* Gesture Engine
+    * `GPULSE` (`0xA6`): `0x89` (`0b11001001`)
+        * `GPULSE<GPULSE>`: `0x09` (`0b001001`)
+            * `10` LED pulses
+        * `GPULSE<GPLEN>`: `0x03` (`0b11`)
+            * `32 us` LED pulse length
+    * `GLDRIVE` (`GCONF2[4:3]`, `0xA3[4:3]`): `0x0` (`0b00`)
+        * LED drive at `100 mA`
+    * `GDIMS` (`GCONF3[1:0]`, `0xAA[1:0]`): `0x0` (`0b00`)
+        * All photodiodes active during gesture measurement
+    * `GOFFSET` (`0xA4`/`0xA5`/`0xA7`/`0xA9`): `0x0` (`0b00000000`)
+        * `0` offset across all photodiodes during gesture measurement
+    * `GGAIN` (`GCONF2[6:5]`, `0xA3[6:5]`): `0x2` (`0b10`)
+        * `4x` photodiode ADC gain during gesture measurements 
+    * `GPENTH` (`0xA0`): `0x28` (`0b00101000`)
+        * Gesture engine entry threshold of `40` proximity counts
+    * `GEXTH` (`0xA1`): `0x1E` (`0b00011110`)
+        * Gesture cycle exit threshold of `30` proximity counts
+    * `GWTIME` (`GCONF2[2:0]`, `0xA3[2:0]`): `0x1` (`0b001`)
+        * `1 * 2.78 ms` = `2.78 ms`
+        * `2.78 ms` wait time between gesture engine cycles while persistent
+    * `GIEN` (`GCONFIG4[1]`, `0xAB[1]`): False (`0b0`)
+        * Disable int pin assertion on internal gesture interrupts
+* Color/Light Engine
+    * `AGAIN` (`CONTROL[1:0]`, `0x8F[1:0]`): `0x2` (`0b10`)
+        * Color/Light Gain at 4x
+    * `AILT` (`0x84`/`0x85`): `0xFFFF` (`0b1111111111111111`)
+        * Lower threshold of `65,535`
+        * Both upper and lower bytes are set to `0xFF`
+        * Comment: `Force interrupt for calibration`
+    * `AIHT` (`0x86`/`0x87`): `0x0000` (`0b0000000000000000`)
+        * High threshold of `0`
+    * `APERS` (`PERS[3:0]`, `0x8C[3:0]`): `0x01` (`0b0001`)
+        * One out-of-range color/light value triggers interrupt
+
 ### Driver Size 
 
-|  | post-import | post-instantiate | `mpy` size |
-|---|---|---|---|
+|  | post-import | post-instantiate | `mpy` size | notes |
+|---|---|---|---|---|
 | bundle `20211114` mpy | 8,416 | 144 | 3,839 |
 | [previous mpy](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/70f54b0a1075d4f14a1ae8e00ebae74b7b962cb7/adafruit_apds9960/apds9960.py) | 8,544 | 160 | 3,948
 | [current mpy](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/c55da0dee66302d2fa8ed31623d047c307f409b2/adafruit_apds9960/apds9960.py) | 8,464 | 144 | 3,794
 | constant_fix mpy | 7,856 | 144 | 3,364 |
 | --- | | | | 
-| prox edit2 | 15,920 | 176 | 7,046 |
+| prox edit2 | 15,920 | 176 | 7,046 | Added a ton of `register.i2c_*` properties as an experiment, which (as expected) increased both filesize and memory footprint substantially.
 
 ## Potential To Do Items
 

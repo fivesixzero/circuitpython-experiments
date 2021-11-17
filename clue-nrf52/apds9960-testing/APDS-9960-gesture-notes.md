@@ -44,24 +44,13 @@ apds.gesture_pulse_length = 1
         datasets = []
 
         # If we've already overflowed, clear out the stale FIFOs right away and start anew
-        # TODO: Figure out a better way to handle premature overflows, maybe
         if self.gesture_fifo_overflow:
             self.gesture_fifo_clear = True
-            # DEBUG
-            print("GESTURE PRE   | already overflowed, clearing FIFOs now and waiting")
             while not self._gesture_valid:
                 time.sleep(0.001) 
 
         if self._gesture_valid and self.gesture_fifo_level > 0:
             record_count = self.gesture_fifo_level
-
-            # DEBUG
-            print("GESTURE BEGIN | gint: {:1} | gvalid: {:1} | gfifolvl: {:3} | status: {:08b}".format(
-                self.gesture_interrupt,
-                self._gesture_valid,
-                self.gesture_fifo_level,
-                self._read8(_APDS9960_STATUS)
-            ))
 
             if self.buf129 is None:
                 self.buf129 = bytearray(129)
@@ -87,39 +76,37 @@ apds.gesture_pulse_length = 1
 
                 # Unpack data stream into more usable U/D/L/R datasets
                 idx = 0
+                low_threshold = 10
                 for i in range(record_count):
                     rec = i + 1
-
                     idx = 1 + ((rec - 1) * 4)
-                    datasets.append((
+
+                    record_tuple = (
                         self.buf129[idx],
                         self.buf129[idx + 1],
                         self.buf129[idx + 2],
                         self.buf129[idx + 3],
-                    ))
+                    )
+                    
+                    # Drop fully-saturated records to conserve memory
+                    if all(val == 255 for val in record_tuple):
+                        pass
+                    # Drop fully-zero records to conserve memory
+                    elif all(val == 0 for val in record_tuple):
+                        pass
+                    # Low-pass filter to remove potentially spurious very-low-count entries
+                    elif all(val < low_threshold for val in record_tuple):
+                        pass
+                    else:
+                        datasets.append(record_tuple)
 
-                # If we've cleared the FIFOs, lets wait to see if any movement is still in progress
+                # If we've managed to empty the FIFOs, lets wait to see if any movement is still in progress
                 # We won't wait forever though!
                 if self.gesture_fifo_level == 0:
                     time.sleep(gesture_wait * 0.001)
                     if self.gesture_fifo_level == 0 or len(datasets) >= max_gesture_datasets:
                         break
 
-            # DEBUG
-            for i in range(len(datasets)):
-                print("GESTURE DATA  | set #{:02}/{:02}: {}".format(
-                    i + 1,
-                    len(datasets),
-                    datasets[i]
-                ))
-
-            # DEBUG
-            print("GESTURE END   | gint: {:1} | gvalid: {:1} | gfifolvl: {:3}".format(
-                self.gesture_interrupt,
-                self._gesture_valid,
-                self.gesture_fifo_level
-            ))
-            
             return datasets
 ```
 

@@ -71,20 +71,15 @@ def wait_for_keypress(keys: keypad.Keys):
 
 ## Dump APDS register states to console
 
-print("Waiting for input before starting config dump")
-wait_for_keypress(buttons)
+# print("Waiting for input before starting")
+# wait_for_keypress(buttons)
     
 import config_regs
 
-config_regs.print_reg_states(apds)
+# config_regs.print_reg_states(apds)
 
 ## Set up APDS for proximity testing
 
-apds.enable_proximity = True
-apds.enable_gesture = True
-# apds.proximity_interrupt_threshold = (0, 150, 15)
-# apds.enable_proximity_interrupt = True
-# apds.enable_proximity_saturation_interrupt = True
 
 print("APDS Init | enable: {}, enable_color: {}, enable_proximity: {}, enable_gesture: {}".format(
     apds.enable,
@@ -93,19 +88,37 @@ print("APDS Init | enable: {}, enable_color: {}, enable_proximity: {}, enable_ge
     apds.enable_gesture
 ))
 
-# apds.gesture_exit_threshold = 50
-# apds.gesture_exit_persistence = 0
+apds.gesture_proximity_threshold = 5
+apds.gesture_exit_threshold = 100
+apds.gesture_exit_persistence = 2
+apds.gesture_fifo_threshold = 1
+apds.gesture_wait_time = 2
+apds.gesture_gain = 1
+apds.gesture_pulses = 8
+apds.gesture_pulse_length = 1
 
-print("APDS GCNF | gpenth: {:3d}, gexth: {:3d}, gexpers: {:1d}".format(apds.gesture_proximity_threshold, apds.gesture_exit_threshold, apds.gesture_exit_persistence))
+# apds.proximity_interrupt_threshold = (0, 150, 15)
+# apds.enable_proximity_interrupt = True
+# apds.enable_proximity_saturation_interrupt = True
 
-print("Waiting for input before dumping post-setup config")
-wait_for_keypress(buttons)
+apds.enable_proximity = True
+apds.enable_gesture = True
 
-config_regs.print_reg_states(apds)
+print("APDS GCNF | gpenth: {:3d}, gexth: {:3d}, gexpers: {:1d}, gfifoth: {:1d}, gwait: {:1d}".format(
+    apds.gesture_proximity_threshold,
+    apds.gesture_exit_threshold,
+    apds.gesture_exit_persistence,
+    apds.gesture_fifo_threshold,
+    apds.gesture_wait_time))
 
-print("Waiting for input before starting loop")
+# print("Waiting for input before dumping post-setup config")
+# wait_for_keypress(buttons)
 
-wait_for_keypress(buttons)
+# config_regs.print_reg_states(apds)
+
+# print("Waiting for input before starting loop")
+
+# wait_for_keypress(buttons)
 while True:
 
     new_presses = get_presses(buttons)
@@ -117,11 +130,3 @@ while True:
             config_regs.print_reg_states(apds)
 
     gesture = apds.gesture()
-    print("APDS | prox   {:3d} | gesture {:2d} | enable_gesture: {:1d}, gesture_valid: {:1d}, gmode: {:1d}, int_pin: {}".format(
-        apds.proximity,
-        gesture,
-        apds.enable_gesture,
-        apds._gesture_valid,
-        apds._gesture_mode,
-        apds_int.value
-    ))
