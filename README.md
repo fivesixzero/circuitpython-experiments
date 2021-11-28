@@ -6,7 +6,7 @@ A collection of demos and experiments built with CircuitPython
 
 ### [Clue nRF52840 Express](https://www.adafruit.com/product/4500)
 
-* `apds-9960-testing`](./clue-nrf52/apds9960-testing)
+* [`apds-9960-testing`](./clue-nrf52/apds9960-testing)
     * A trip deep, deep down the rabbit-hole with the complex APDS-9960 proximity, gesture, and color/light sensor including copious test code, notes (and even a fancy Jupyter Notebook!) on gesture recognition via CircuitPython
 
 ### [Feather Bluefruit Sense](https://www.adafruit.com/product/4516)
