@@ -10,7 +10,7 @@ Testing the APDS9960's individual functions on the Adafruit Clue nRF52840.
     * A detour into the world of APDS-9960 gesture sensor data handling, which is a bit more complicated than it seems
 * [Gesture Engine Data Retrieval Notes](./APDS-9960-gesture-data-retrieval-notes.md)
     * A deeper detour into the decisions involved in configuring the APDS and choosing how to read in its datasets
-* [Gesture Engine Data Playground Jupyter Notebook][./APDS-9960-gesture-data-playground.ipynb]
+* [Gesture Engine Data Playground Jupyter Notebook](./APDS-9960-gesture-data-playground.ipynb)
     * An _even deeper_ detour into the world of processing the data that the APDS-9960's gesture engine spits out
 
 ## Overview
