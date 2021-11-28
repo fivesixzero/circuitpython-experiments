@@ -8,6 +8,10 @@ Testing the APDS9960's individual functions on the Adafruit Clue nRF52840.
     * Detailed notes covering state machine operations, control registers, and observations while developing, testing, and bug-fixing
 * [Gesture Engine Notes](./APDS-9960-gesture-notes.md)
     * A detour into the world of APDS-9960 gesture sensor data handling, which is a bit more complicated than it seems
+* [Gesture Engine Data Retrieval Notes](./APDS-9960-gesture-data-retrieval-notes.md)
+    * A deeper detour into the decisions involved in configuring the APDS and choosing how to read in its datasets
+* [Gesture Engine Data Playground Jupyter Notebook][./APDS-9960-gesture-data-playground.ipynb]
+    * An _even deeper_ detour into the world of processing the data that the APDS-9960's gesture engine spits out
 
 ## Overview
 
@@ -32,13 +36,13 @@ Several dev boards have this chip built-in, making those boards handy for testin
 Boards:
 
 * [Adafruit Clue nRF52840](https://www.adafruit.com/product/4500)
-  * Guide: <https://learn.adafruit.com/adafruit-clue>
+    * Guide: <https://learn.adafruit.com/adafruit-clue>
 * [Adafruit Feather Bluefruit Sense nRF52840](https://www.adafruit.com/product/4516)
-  * Guide: <https://learn.adafruit.com/adafruit-feather-sense>
+    * Guide: <https://learn.adafruit.com/adafruit-feather-sense>
 * [Adafruit Proximity Trinkey SAMD21](https://www.adafruit.com/product/5022)
-  * Guide: <https://learn.adafruit.com/adafruit-proximity-trinkey>
+    * Guide: <https://learn.adafruit.com/adafruit-proximity-trinkey>
 * [Adafruit APDS-9960 Breakout (STEMMA QT/Qwiic)](https://www.adafruit.com/product/3595)
-  * Guide: <https://learn.adafruit.com/adafruit-apds9960-breakout>
+    * Guide: <https://learn.adafruit.com/adafruit-apds9960-breakout>
 
 Projects/Guides/Example Code:
 
@@ -47,13 +51,25 @@ Projects/Guides/Example Code:
 * Adafruit Learn Guide: [Bluefruit Playground App](https://learn.adafruit.com/bluefruit-playground-app)
 * Adafruit Learn Guide: [ulab: Crunch Numbers fast in CircuitPython](https://learn.adafruit.com/ulab-crunch-numbers-fast-with-circuitpython)
 * `pdx.edu`: [Programming the Adafruit Feather nRF52840 Sense: Detecting Light Intensity](https://web.cecs.pdx.edu/~gerry/class/feather_sense/on-board/ambientLight/)
-  * This uses Arduino rather than CircuitPython but is still potentially relevant
+    * This uses Arduino rather than CircuitPython but is still potentially relevant
 
 ### Boards to Test With
 
 In particular, I'm mostly focusing on the Clue for initial functionality testing since its got a display and a pair of buttons for human interfacing.
 
 But before landing on any proper solutions I'll be testing on the Proximity Trinkey as a most-constrained-case type thing. Its just got a SAMD21, which is still quite capable but is much more constrained in memory (32k!) and storage (just 256k flash!).
+
+My primary development iterations are being run on a Clue though, since this nRF52 board has a bit more memory head-room to work with making it much more forgiving for hashing out the algorithms for retrieving and processing data.
+
+## Revisions
+
+While testing out ideas I've developed a few "revisions" of both my testing code and the driver code itself. If its noteworthy or interesting enough I'll be adding it to sub-directories here with `v<version>` tagged. If I'm really feeling punchy I'll also add info on the 'revision' here with a note. 
+
+* `v0` - Super early testing code
+    * Involved some very hacky modification of the driver for my first testing iteration so no driver code there since, well, its more confusing than useful :)
+* `v1` - First major algorithm refactor
+    * After a bunch of halting steps in the right-ish direction this was the first "oh dang it works" revision
+    * It's a heavyweight though so its probably not ready for prime time...
 
 ## Links
 
