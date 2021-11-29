@@ -127,7 +127,7 @@ This is what the process looks like, at a lower level, when the Proximity State 
 
 Detection range depends on a lot of factors, some of which can be adapted to via configuration. An example is provided in the datasheet that illustrates both the sensor's adaptability and the limitations of this approach in terms of absolute precision.
 
-| Parameter | Min | Typ | Max | Units | Test Conditions |
+| Parameter | Min | Typical | Max | Units | Test Conditions |
 |---|---|---|---|---|---|
 | Proximity ADC count value, 100 mm distance object | 96 | 120 | 144 | counts | Reflecting object – 73 mm × 83 mm Kodak 90% grey card, 100 mm distance, VLEDA = 3 V, LDRIVE = 100 mA, PPULSE = 8, PGAIN = 4x, PPLEN = 8 ms, LED_BOOST = 100%, open view (no glass) above the module. |
 
@@ -772,7 +772,7 @@ Here are the values they landed on, broken out by subsystem future reference.
 | [current mpy](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/c55da0dee66302d2fa8ed31623d047c307f409b2/adafruit_apds9960/apds9960.py) | 8,464 | 144 | 3,794
 | constant_fix mpy | 7,856 | 144 | 3,364 |
 | --- | | | | 
-| prox edit2 | 15,920 | 176 | 7,046 | Added a ton of `register.i2c_*` properties as an experiment, which (as expected) increased both filesize and memory footprint substantially.
+| prox edit2 | 15,920 | 176 | 7,046 | Added a ton of `register.i2c_*` properties as an experiment, which (as expected) increased both file size and memory footprint substantially.
 
 ## Potential To Do Items
 

@@ -70,6 +70,10 @@ While testing out ideas I've developed a few "revisions" of both my testing code
 * `v1` - First major algorithm refactor
     * After a bunch of halting steps in the right-ish direction this was the first "oh dang it works" revision
     * It's a heavyweight though so its probably not ready for prime time...
+* `v2` - Proper run at optimization
+    * The v1 code was huge, both in `mpy` file size and post-import memory footprint. We can do better.
+    * Thorough A/B testing with different optimizations yielded a much-improved driver with a much smaller footprint that achieves the same major goals
+    * This version lacks the tuning options of the `v1` driver though, so an `advanced` version may be warranted
 
 ## Links
 
