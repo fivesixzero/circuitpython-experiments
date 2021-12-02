@@ -14,23 +14,20 @@ In this case though we'll maintain the current interface contract by optimizing 
 
 ### Post-optimization Constraints/Considerations
 
-#### Optimized File Size
+#### Optimization Results
 
-| | `mpy` size | delta |
-|--|-----------|-------| 
-| Bundle `c55da0d` | `3,839` | Baseline | 
-| Repo main (`2.2.8`/`2c5ee6a`) | `3,854` | `-15` | 
-| Repo main (`2.2.8`/`2c5ee6a`) `-O3` | `3,563` | `-276` |
-| `cleanup-and-gesture-enhancements v1` | `6,831` | `+2,992` |
-| `cleanup-and-gesture-enhancements v1` `-O3` | `6,344` | `+2,505` |
-| `constants-fixes` | `3,400` | `-439` |
-| `constants-fixes` `-O3` | `3,135` | `-704` |
-| `removal-of-register-lib-test` | `4,709` | `+870` |
-| `removal-of-register-lib-test` `-O3` | `4,336` | `+497` |
-| `removal-of-non-basic-functions` | `3,634` | `-205` |
-| `removal-of-non-basic-functions` `-O3` | `3,316` | `-523` |
-| `setting-complex-defaults-simply` | `3,528` | `-311` |
-| `gesture-simplicity-refactor` | `3,798` | `-41` |
+| Commit | `mpy` size | `mpy` delta | mem `SAMD21` | mem delta | mem `RP2040` | mem delta |  Note |
+|------|-----------|-------|----|---|---|---|---|
+| [`2c5ee6a`](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/c55da0dee66302d2fa8ed31623d047c307f409b2/adafruit_apds9960/apds9960.py) | `3,839` | baseline  | `8,944` | baseline | `9,904` | baseline | Current bundle, baseline |  |
+| [`2c5ee6a`](https://github.com/adafruit/Adafruit_CircuitPython_APDS9960/blob/2c5ee6a3a6453bac2217f3db9a70bb83f022d961/adafruit_apds9960/apds9960.py) | `3,854` | `-15` | `8,960` | `-16` | `9,872` | `-32` |  `v2.2.8`, latest `mpy-cross` |
+| [`064fd99`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/064fd99f6006ce146eefa74eff5944af1d716b2e/adafruit_apds9960/apds9960.py) | `6,831` | `+2,992` | OOM :( | OOM :( | `15,296` | `+5,392` | First refactor, #38 |
+| [`424e72c`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/424e72cd30ae3279f82480ca599626f79fa7995e/adafruit_apds9960/apds9960.py) | `3,400` | `-439` | `8,480` | `-464` | `12,480` | `+2,576` | First optimization pass, #37 |
+| [`30eeadd`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/30eeadd62628d9747e34c4623bfa29a36bd8b7da/adafruit_apds9960/apds9960.py) | `4,709` | `+870` | `6,944` | `-2,000` | `6,880` | `-3,024` | Removed `register` use |
+| [`9e335a0`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/9e335a00c8ae3f8ad74990ccff6798c54e003784/adafruit_apds9960/apds9960.py) | `3,634` | `-205` | `6,000` | `-2,944` | `5,488` | `-4,416` | Removed non-essential methods/props |
+| [`999945e`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/999945eaddff6cc7e220ceb26a5ef244288be0f7/adafruit_apds9960/apds9960.py) | `3,528` | `-311` | `5,792` | `-3,152` | `5,424` | `-4,480` | Refactored/tested init reset/defaults |
+| [`faa7969`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/faa7969c4fd63ce818b51409e4834f95230a3ce7/adafruit_apds9960/apds9960.py) | `3,798` | `-41` | `5,568` | `-3,376` | `5,456` | `-4,448` `gesture()` rewrite |
+| [`c02b1df`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/c02b1df8730b88ac06e39ee75c42ca7d6bccb267/adafruit_apds9960/apds9960.py) | `3,988` | `+149` | `5,872` | `-3,072` | `5,776` | `-4,128` | Color engine fixes |
+| [`4c97c60`](https://github.com/fivesixzero/Adafruit_CircuitPython_APDS9960/blob/4c97c604b565b61333d3ff37d4f815bc8d7087e7/adafruit_apds9960/apds9960.py) | `4,053` | `+214` | `5,936` | `-3,008` | `5,840` | `-4,064` | Major docstring and docs/examples updates |
 
 ##### File Size Optimization Notes
 
@@ -39,46 +36,6 @@ Ideally compiled `mpy` file size should be as small as possible for both of thes
 The main impact of this is use on boards with smaller storage, with the `Proximity Trinkey` being the most constrained case. In that case the APDS driver actually gets frozen into the firmware, so any increase in file size could destabilize the CircuitPython build process as a whole. So lets try to not do that.
 
 The compiled file from the bundle is pretty darn small. Aside from somewhat wonky gesture detection code I think we can do a bit better than that. Unfortunately my first refactor resulted in a massive increase here, so this can be useful as "high water mark" for our `advanced` driver optimizations.
-
-#### Optimized Memory Footprint
-
-`SAMD21` / `Proximity Trinkey` (`7.1.0-beta.0` w/ frozen libs removed)
-
-|  | import mem | delta |
-|--|-----------|-------| 
-| Bundle `c55da0d` | `8,944` | Baseline |  
-| Repo main (`2.2.8`/`2c5ee6a`) | `8,960` | `-16` |
-| Repo main (`2.2.8`/`2c5ee6a`) `-O3` | `8,848` | `-96` |
-| `cleanup-and-gesture-enhancements v1` | `failed` |  |
-| `cleanup-and-gesture-enhancements v1` `-O3` | `failed` |  |
-| `constants-fixes` | `8,480` | `-464` |
-| `constants-fixes` `-O3` | `8,304` | `-640` |
-| `removal-of-register-lib-test` | `6,944` | `-2,000` |
-| `removal-of-register-lib-test` `-O3` | `6,784` | `-2,160` |
-| `removal-of-non-basic-functions` | `6,000` | `-2,944` |
-| `removal-of-non-basic-functions` `-O3` | `5,744` | `-3,200` |
-| `setting-complex-defaults-simply` | `5,792` | `-3,152` |
-| `setting-complex-defaults-simply` `-O3` | `5,664` | `-3,280` |
-| `gesture-simplicity-refactor` | `5,568` | `3,376`
-
-`RP2040` / `QTPy RP2040` (`7.1.0-beta.0`)
-
-|  | import mem | delta |
-|--|-----------|-------| 
-| Bundle `c55da0d` | `9,904` | Baseline | 
-| Repo main (`2.2.8`/`2c5ee6a`) | `9,872` | `-32` | 
-| Repo main (`2.2.8`/`2c5ee6a`) `-O3` | `9,744` | `160` |
-| `cleanup-and-gesture-enhancements v1` | `15,296` | `+5,392` |
-| `cleanup-and-gesture-enhancements v1` `-O3` | `15,024` | `+5,120` |
-| `constants-fixes` | `12,480` | `+2,576` |
-| `constants-fixes` `-O3` | `9,136` | `-768` |
-| `removal-of-register-lib-test` | `6,880` | `-3,024` |
-| `removal-of-register-lib-test` `-O3` | `6,720` | `-3,184` |
-| `removal-of-non-basic-functions` | `5,488` | `-4,416` |
-| `removal-of-non-basic-functions` `-O3` | `5,360` | `-4,544` |
-| `setting-complex-defaults-simply` | `5,424` | `-4,480` |
-| `setting-complex-defaults-simply` `-O3` | `5,120` | `-4,784` |
-| `gesture-simplicity-refactor` | `5,456` | `4,448`
 
 ##### Memory Footprint Optimization Notes
 
@@ -107,8 +64,6 @@ Both are set to auto-restart on filesystem changes, so their serial consoles wil
     * `ls -al /media/me/CIRCUITPY/lib/adafruit_apds9960/`   
     * `ls -al /media/me/CIRCUITPY1/lib/adafruit_apds9960/`   
 4. Observe memory usage in serial output, record results in tables above
-
-For some 
 
 ##### Memory Footprint Test Script
 
@@ -553,3 +508,9 @@ The biggest change from the original refactor is a streamlining of all of the co
 Taking a methodical approach to optimizing this code seems to have paid off! We've got a functional driver with improved gesture recognition in a smaller `mpy` file with a much lower memory footprint.
 
 With this optimization done, all that's left to do is to update the examples and doc then set up a proper PR. Whew.
+
+## Misc Notes
+
+Cost, in bytes of filesize
+
+## EOF
