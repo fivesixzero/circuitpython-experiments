@@ -39,5 +39,5 @@ Selected Recommended/Cool Key Caps:
 * Adafruit [`Relegendable Plastic Keycaps`](https://www.adafruit.com/product/5039)
 * Max Keyboard [`1x1 Media F-Key Shortcuts Keycap Set`](https://www.maxkeyboard.com/r4-1x1-media-f-key-shortcuts-keycap-set.html)
     * Glow-through media caps weren't easy to find but after a bit of Google searching I landed on these. The quality's good and they're exactly as advertised, although a bit pricey for a 'kit' where a few will end up unused in my projects.
-* Max Keyboard [`R4 "Power" Backlight Cherry MX Keycap"](https://www.maxkeyboard.com/custom-r4-power-backlight-cherry-mx-keycap.html)
+* Max Keyboard [`R4 "Power" Backlight Cherry MX Keycap`](https://www.maxkeyboard.com/custom-r4-power-backlight-cherry-mx-keycap.html)
     * Just a nice, universal symbol to use for on/off, power, or other misc use cases
