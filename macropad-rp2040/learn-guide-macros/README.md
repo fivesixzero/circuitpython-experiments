@@ -5,6 +5,8 @@
 
 A collection of macro examples for use with the "Learn Guide" code that I've used on my Macropad for various scenarios.
 
+<img src="./macropad-rp2040.png">
+
 ## Macros: Windows 11
 
 These macros all have media controls on the top part of the keypad and app/website links on the bottom keys.
