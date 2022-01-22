@@ -25,3 +25,8 @@ A collection of demos and experiments built with CircuitPython
     * Testing the MagTag's power usage to better estimate battery life in various types of use cases.
 * [`tasmota-tag`](./magtag-esp32-s2/tasmota-tag)
     * Functional proof of concept for control of Tasmota-flashed, MQTT-enabled LED lightbulbs using a MagTag running CircuitPython with the `adafruit_minimqtt` library.
+
+### [MacroPad RP2040](https://www.adafruit.com/product/5128)
+
+* [`learn-guide-macros`](./macropad-rp2040/learn-guide-macros)
+    * Macro examples for use with the excellent ["Learn Guide" code](https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Macropad_Hotkeys) for the Macropad RP2040

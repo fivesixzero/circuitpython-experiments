@@ -1,9 +1,9 @@
 # `Macropad RP2040` Hotkey Configs for Learn Guide code
 
-Guide: <https://learn.adafruit.com/macropad-hotkeys/custom-configurations>
-Learn Guide Code: <https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Macropad_Hotkeys>
+* Guide: <https://learn.adafruit.com/macropad-hotkeys/custom-configurations>
+* Learn Guide Code: <https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Macropad_Hotkeys>
 
-A collection of simple macro examples for the Learn Guide code that I've used on my Macropad for various scenarios.
+A collection of macro examples for use with the "Learn Guide" code that I've used on my Macropad for various scenarios.
 
 ## Macros: Windows 11
 
@@ -15,7 +15,7 @@ The app/website macros all depend on pinned positions of apps, particularly Chro
 
 Basics:
 
-* Adafruit [`Macropad RP2040` kit](https://www.adafruit.com/product/51280)
+* Adafruit [`Macropad RP2040` kit](https://www.adafruit.com/product/5128)
 * Adafruit [`Kailh Jade Thick Click Keyswitch`](https://www.adafruit.com/product/5149)
     * The reds in the kit are fine (and have found uses elsewhere) but I prefer the thicker ka-chunk of Cherry MX Greens. Unfortunately the greens are tough to find and, as far as I know, don't come with a white/clear housing - only the old Cherry classic black/black and black/clear if you can find them. These easily available Kailh Jades fit the bill quite nicely though, with a satisfying tactile click.
 * Adafruit [`Mini Magnet Feet for RGB LED Matrices`](https://www.adafruit.com/product/4631)
