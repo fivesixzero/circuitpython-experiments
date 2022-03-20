@@ -349,7 +349,7 @@ while True:
         wifi.reset()
         mqtt_client.reconnect()
 
-    # print('loop... new new_messages_came_in: {}'.format(new_messages_came_in))
+    print('loop... new new_messages_came_in: {}'.format(new_messages_came_in))
 
     should_change_anything = False
     should_toggle = False
@@ -405,6 +405,8 @@ while True:
                         new_dimmer = 99
                     mqtt_client.publish(cmnd_dimmer.format(bulbname), str(new_dimmer))
                 button_timer = 5
+            else:
+                button_timer = 3
             neopixels[0] = (255,0,0)
 
             ## Retrieve all new messages
