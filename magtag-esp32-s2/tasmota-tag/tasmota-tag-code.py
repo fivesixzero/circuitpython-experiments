@@ -4,6 +4,7 @@ import socketpool
 import wifi
 import time
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
+from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
 import neopixel
 from digitalio import DigitalInOut, Direction, Pull
 import keypad
@@ -109,6 +110,17 @@ def publish(mqtt_client, userdata, topic, pid):
         print("cmnd: {} -> Op: {}".format(topic_data['device'], topic_data['op']))
     else:
         print("Published to {0} with PID {1}".format(topic, pid))
+        
+def connect(client, userdata, flags, rc):
+    # This function will be called when the client is connected
+    # successfully to the broker.
+    print("Connected to MQTT Broker!")
+    print("Flags: {0}\n RC: {1}".format(flags, rc))
+
+def disconnect(client, userdata, rc):
+    # This method is called when the client disconnects
+    # from the broker.
+    print("Disconnected from MQTT Broker!")
 
 pool = socketpool.SocketPool(wifi.radio)
 
@@ -119,13 +131,20 @@ mqtt_client = MQTT.MQTT(
     username=secrets["mqtt_user"],
     password=secrets["mqtt_password"],
     socket_pool=pool,
-    client_id=secrets["mqtt_client_id"],
-    ssl_context=ssl.create_default_context()
+    # client_id=secrets["mqtt_client_id"],
+    ssl_context=ssl.create_default_context(),
+    keep_alive=120
 )
 
+mqtt_client.on_connect = connect
+mqtt_client.on_disconnect = disconnect
 mqtt_client.on_subscribe = subscribe
 mqtt_client.on_unsubscribe = unsubscribe
 mqtt_client.on_publish = publish
+
+## DEBUG LOGGING
+import adafruit_logging as logging
+mqtt_client.enable_logger(logging, 10)
 
 mqtt_client.connect()
 ## end MQTT
@@ -185,10 +204,17 @@ print("Initial data retrieval starting")
 ## Request status info for all bulbs for initial state
 for bulb in bulbs:
     mqtt_client.publish(cmnd_status.format(bulb), '11')
-    mqtt_client.loop(0.5)
-mqtt_client.loop(0.5)
-time.sleep(1)
-mqtt_client.loop(0.5)
+
+## Retrieve all new messages
+try:
+    rc = mqtt_client.loop()
+    while rc is not None:
+        rc = mqtt_client.loop()
+except (ValueError, MMQTTException, RuntimeError) as e:
+    print("Failed to get data, retrying\n", e)
+    wifi.reset()
+    mqtt_client.reconnect()
+
 print("Initial data retrieval is complete")
 
 ## Display Setup
@@ -310,13 +336,20 @@ print("Starting loop")
 button_timer = 0
 while True:
 
+
+    ## Retrieve all new messages
+    new_messages_came_in = False
     try:
-        mqtt_client.loop(0.1)
-    except (ValueError, RuntimeError) as e:
+        rc = mqtt_client.loop()
+        while rc is not None:
+            new_messages_came_in = True
+            rc = mqtt_client.loop()
+    except (ValueError, MMQTTException, RuntimeError) as e:
         print("Failed to get data, retrying\n", e)
         wifi.reset()
         mqtt_client.reconnect()
-        continue
+
+    # print('loop... new new_messages_came_in: {}'.format(new_messages_came_in))
 
     should_change_anything = False
     should_toggle = False
@@ -347,50 +380,45 @@ while True:
             print("Buttons: Ready for next button input")
             neopixels[0] = (0,0,0)
     else:
-        if should_change_anything:
+        if should_change_anything or new_messages_came_in:
             if should_toggle:
                 for bulbname in bulbnames:
                     new_dimmer = int(bulbs[bulbname].dimmer) - 25
                     if new_dimmer <= 10:
                         new_dimmer = 10
                     mqtt_client.publish(cmnd_power.format(bulbname), 'TOGGLE')
-                    mqtt_client.loop(0.1)
-                mqtt_client.loop(0.1)
-                time.sleep(0.1)
-                mqtt_client.loop(0.1)
                 button_timer = 8
             if should_just_refresh_display:
                 print("Battery Status: {}".format(battery_status()))
-                mqtt_client.loop(1)
                 button_timer = 3
             if should_turn_on:
-                mqtt_client.loop(1)
                 for bulbname in bulbnames:
                     new_dimmer = int(bulbs[bulbname].dimmer) - 25
                     if new_dimmer <= 10:
                         new_dimmer = 10
                     mqtt_client.publish(cmnd_dimmer.format(bulbname), str(new_dimmer))
-                    time.sleep(0.2)
-                    mqtt_client.loop(1)
-                time.sleep(0.2)
-                mqtt_client.loop(1)
                 button_timer = 5
             if should_turn_off:
-                mqtt_client.loop(1)
                 for bulbname in bulbnames:
                     new_dimmer = int(bulbs[bulbname].dimmer) + 25
                     if new_dimmer > 99:
                         new_dimmer = 99
                     mqtt_client.publish(cmnd_dimmer.format(bulbname), str(new_dimmer))
-                    time.sleep(0.2)
-                    mqtt_client.loop(1)
-                time.sleep(0.2)
-                mqtt_client.loop(1)
                 button_timer = 5
             neopixels[0] = (255,0,0)
-            time.sleep(1)
-            mqtt_client.loop(0.5)
+
+            ## Retrieve all new messages
+            try:
+                rc = mqtt_client.loop()
+                while rc is not None:
+                    rc = mqtt_client.loop()
+            except (ValueError, MMQTTException, RuntimeError) as e:
+                print("Failed to get data, retrying\n", e)
+                wifi.reset()
+                mqtt_client.reconnect()
+
             for bulbname in bulbnames:
+
                 ## Set indicator for bulb power
                 if bulbs[bulbname].power == 'ON':
                     device_indicators[bulbname].fill = True
@@ -398,7 +426,11 @@ while True:
                     device_indicators[bulbname].fill = None
                 ## Set indicator for bulb dimming
                 device_bars[bulbname].value = int(bulbs[bulbname].dimmer)
+
             status_right.text = str(battery_status())
+            
+            print("Refreshing display")
+
             display_refresh()
 
-    time.sleep(0.01)
+    time.sleep(0.1)
