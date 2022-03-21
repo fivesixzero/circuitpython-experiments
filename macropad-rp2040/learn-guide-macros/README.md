@@ -43,3 +43,18 @@ Selected Recommended/Cool Key Caps:
     * Glow-through media caps weren't easy to find but after a bit of Google searching I landed on these. The quality's good and they're exactly as advertised, although a bit pricey for a 'kit' where a few will end up unused in my projects.
 * Max Keyboard [`R4 "Power" Backlight Cherry MX Keycap`](https://www.maxkeyboard.com/custom-r4-power-backlight-cherry-mx-keycap.html)
     * Just a nice, universal symbol to use for on/off, power, or other misc use cases
+
+OLED and OLED FPC:
+
+My OLED ended up with some heavy burn-in after I left it powered on with the same text for about six months. Whoops. Thankfully, Adafruit has a bunch of spares in stock!
+
+OLED Datasheet: <https://cdn-shop.adafruit.com/product-files/5228/5223-ds.pdf>
+
+* Adafruit [`Monochrome 1.3" 128x64 SH1106G SPI OLED Monochrome Display`](https://www.adafruit.com/product/5228)
+
+It'd be nice to extend the FPC cable a bit to allow for mounting the FPC a bit higher up, like close to the surface of a case. I couldn't find any ready-made 'FPC extenders' for the job, but maybe DigiKey has some parts that could help get this done easily. Could either build an extender from connectors and a simple PCB or even just solder a short jumper to the connector. 
+
+The FPC connector is 16-pin, 0.5mm pitch, 8.5mm (+- 0.07mm) wide, and 0.3mm (+- 0.03mm) thick.
+
+Digikey FPC Connectors: <https://www.digikey.com/short/905db25d>
+Digikey FPC Jumpers: <https://www.digikey.com/short/nvmb789r>
