@@ -14,10 +14,17 @@ A collection of demos and experiments built with CircuitPython
 * [`all-devices-demo`](./feather-bluefruit-sense/all-devices-demo)
     * Demo: Illustrating use of ALL THE THINGS on this fancy board with CircuitPython 7.0.0.
 
-### [Trinket M0](https://www.adafruit.com/product/3500)
+### [Feather RP2040](https://www.adafruit.com/product/4884)
 
-* [`light-up-loupe`](./trinket-m0/light-up-loupe)
-    * Prototype: Turning an inexpensive Carson loupe into a fancy ring-lit loupe.
+* [`all-the-things-demo`](./feather-rp2040/all-the-things-demo/)
+    * Demo: Illustrating use of ALL THE THINGS on this fancy board with CircuitPython 7.0.0.
+* [`rfm95w-lora-featherwing`](./feather-rp2040/rfm95w-lora-featherwing/)
+    * Demo: Illustrating basic usage of the [RFM95W LoRa FeatherWing](https://www.adafruit.com/product/3231) for transmitting and receiving messages
+
+### [MacroPad RP2040](https://www.adafruit.com/product/5128)
+
+* [`learn-guide-macros`](./macropad-rp2040/learn-guide-macros)
+    * Macro examples for use with the excellent ["Learn Guide" code](https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Macropad_Hotkeys) for the Macropad RP2040
 
 ### [MagTag](https://www.adafruit.com/product/4800)
 
@@ -26,7 +33,12 @@ A collection of demos and experiments built with CircuitPython
 * [`tasmota-tag`](./magtag-esp32-s2/tasmota-tag)
     * Functional proof of concept for control of Tasmota-flashed, MQTT-enabled LED lightbulbs using a MagTag running CircuitPython with the `adafruit_minimqtt` library.
 
-### [MacroPad RP2040](https://www.adafruit.com/product/5128)
+### [Trinket M0](https://www.adafruit.com/product/3500)
 
-* [`learn-guide-macros`](./macropad-rp2040/learn-guide-macros)
-    * Macro examples for use with the excellent ["Learn Guide" code](https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Macropad_Hotkeys) for the Macropad RP2040
+* [`light-up-loupe`](./trinket-m0/light-up-loupe)
+    * Prototype: Turning an inexpensive Carson loupe into a fancy ring-lit loupe.
+
+### Notes
+
+* [`python-re-commit-notes.md`](./notes/python-pre-commit-notes.md)
+    * Cheat sheet for using `pre-commit`, `black`, `mypy`, and `sphynx` to validate code when preparing contributions to Adafruit's CircuitPython projects
