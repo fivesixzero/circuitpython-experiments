@@ -57,8 +57,13 @@ If you've followed the [Tasmota setup guide for Home Assistant](https://tasmota.
 On power up, the device will do the following.
 
 * Connect to WiFi network in `secrets.py`
+   * Neopixel 3 (the left-most pixel) is lit during WiFi connect
 * Request state for the bulbs listed within the `secrets.py`
+   * Neopixels 2 and 1 (the second-from-left and third-from-left pixels) are lit during MQTT setup and connect operations
+   * Neopixel 1 will also be lit whenever user-initiated MQTT server operations are performed during loops
 * Refresh the display to display the current state of the bulbs
+   * Neopixel 0 (the right-most pixel) is lit during any status/display refresh operations
+   * Neopixel 0 will also be lit whenever a display update is in progress during loops 
 * Enter a loop for control/refresh
 
 In the control/refresh loop the following user controls become available.
@@ -70,7 +75,7 @@ Note: MagTag buttons are A-D, starting at the left
 * Button C (`D12`): Reduce brightness of all bulbs
 * Button D (`D11`): Increase brightness of all bulbs
 
-To avoid spamming the MQTT server there's a crude cycle-count delay. During this delay period the right-most Neopixel lights up red to provide a visual indication of this input delay.
+To avoid button-mashing creating MQTT server spam there's an input delay after each input that blocks input until the display refresh is complete, which usually takes 4-6 seconds or so. During this delay period the right-most Neopixel lights up to provide a visual indication that the tag is working on updating status and refreshing the display.
 
 ## Notes
 
