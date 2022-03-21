@@ -18,10 +18,11 @@ from adafruit_display_shapes.circle import Circle
 from adafruit_progressbar.progressbar import HorizontalProgressBar
 import adafruit_logging as logging
 import supervisor
+import binascii
 
 ### Logging related variables
-log_level = logging.INFO
-mqtt_log_level = logging.INFO
+log_level = logging.DEBUG
+mqtt_log_level = logging.DEBUG
 log_to_filesystem_on_battery = True
 log_format_string = "[{0:<0.3f} {1:5s} {2:4}] - {3}"
 ### Loop related variables
@@ -184,15 +185,20 @@ class Bulb:
         self.dimmer = '0'
         self.ct = '0'
         self.color = '0'
+        self.ip = ''
 
-    def set_status(self, power: str, dimmer: str, ct: str, color: str):
+    def set_status(self, power: str, dimmer: str, ct: str, color: str, ip: str=''):
         self.power = power
         self.dimmer = dimmer
         self.ct = ct
         self.color = color
 
+    def set_ip(self, ip: str):
+        self.ip = ip
+
     def __repr__(self) -> str:
-        return "Bulb: {} | Power: {}, Dimmer: {}, CT: {}, Color: {}".format(self.name, self.power, self.dimmer, self.ct, self.color)
+        return "Bulb: {} | Power: {}, Dimmer: {}, CT: {}, Color: {}, IP: {}".format(
+            self.name, self.power, self.dimmer, self.ct, self.color, self.ip)
 
 
 ## Set up MagTag peripherals
@@ -296,12 +302,18 @@ def disconnect(client, userdata, rc):
 ### Init socket pool for MQTT client
 pool = socketpool.SocketPool(wifi.radio)
 
+### Generate client ID based on this device's WiFi MAC address
+mqtt_client_id = "tasmota-tag-{}".format(binascii.hexlify(wifi.radio.mac_address).decode("utf-8"))
+
+log.info("Connecting to MQTT broker: client-id [{}]".format(mqtt_client_id))
+
 ### Init and configure client with our callbacks
 mqtt_client = MQTT.MQTT(
     broker=secrets["mqtt_broker"],
     port=secrets["mqtt_port"],
     username=secrets["mqtt_user"],
     password=secrets["mqtt_password"],
+    client_id=mqtt_client_id,
     socket_pool=pool,
     # client_id=secrets["mqtt_client_id"],
     ssl_context=ssl.create_default_context(),
@@ -367,6 +379,9 @@ def message(mqtt_client, topic, message):
             payload = json.loads(message)["StatusSTS"]
             bulbs[bulbname].set_status(payload['POWER'], payload['Dimmer'], payload['CT'], payload['Color'])
             log.debug("MQTT Result: {}".format(bulbs[bulbname]))
+        if topic_data["op"] == "STATUS5":
+            payload = json.loads(message)["StatusNET"]
+            bulbs[bulbname].set_ip(payload['IPAddress'])
         ## Handle 'RESULT' message
         if topic_data["op"] == "RESULT":
             payload = json.loads(message)
@@ -417,6 +432,7 @@ log.info("Initial data retrieval starting")
 
 ## Request status info for all bulbs for initial state
 for bulb in bulbs:
+    mqtt_client.publish(cmnd_status.format(bulb), '5')
     mqtt_client.publish(cmnd_status.format(bulb), '11')
 
 ## Retrieve all new messages
@@ -507,10 +523,16 @@ for name in bulbnames:
   splash.append(device_indicator)
   device_indicators[name] = device_indicator
   ## Device Text Label
-  device_label = label.Label(
-    font, text=name, color=0x000000, 
-    anchor_point=(0.0, 0.5), anchored_position=(device_text_x, y_position)
-  )
+  if log_level == logging.DEBUG:
+    device_label = label.Label(
+        font, text="{} [{}]".format(name, bulbs[bulbname].ip), color=0x000000, 
+        anchor_point=(0.0, 0.5), anchored_position=(device_text_x, y_position)
+    )
+  else:
+    device_label = label.Label(
+        font, text=name, color=0x000000, 
+        anchor_point=(0.0, 0.5), anchored_position=(device_text_x, y_position)
+    )
   splash.append(device_label)
   device_labels[name] = device_label
   ## Device Brightness Bars
