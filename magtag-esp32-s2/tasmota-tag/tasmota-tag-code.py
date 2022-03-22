@@ -458,7 +458,7 @@ def display_refresh():
             pass
     except RuntimeError:
         log.warning("Display refresh too soon, waiting before trying again")
-        time.sleep(2)
+        time.sleep(display.time_to_refresh)
         display.refresh()
         while display.busy:
             pass
@@ -525,7 +525,7 @@ for name in bulbnames:
   ## Device Text Label
   if log_level == logging.DEBUG:
     device_label = label.Label(
-        font, text="{} [{}]".format(name, bulbs[bulbname].ip), color=0x000000, 
+        font, text="{} [{}]".format(name, bulbs[name].ip), color=0x000000, 
         anchor_point=(0.0, 0.5), anchored_position=(device_text_x, y_position)
     )
   else:
@@ -588,11 +588,12 @@ log.info("Starting loop: loop_delay [{}], result_message_delay [{}]".format(loop
 while True:
     
     ### Step 0: If our display is refreshing at loop start, wait to start the loop until the refresh is complete
-    if display.busy:
+    if display.busy or display.time_to_refresh > 0.0:
         neo_power.value = False
         neopixels[pixel_busy_status] = (255,0,0)
-        log.warning("loop: Display busy, waiting {} before starting loop".format(display.time_to_refresh))
+        log.debug("loop: Display busy, waiting {} before starting loop".format(display.time_to_refresh))
         time.sleep(display.time_to_refresh + 0.1)
+        log.debug("loop: Display busy wait complete, starting loop")
         neopixels[pixel_busy_status] = (0,0,0)
         neo_power.value = True
 
@@ -604,17 +605,28 @@ while True:
     ## Did our newly received messages result in any state changes?
     new_messages_relevant = False
     if new_messages_came_in:
-        ## Cycle through our bulbs list and make sure our indicators 
+        log.debug("New messages arrived, checking for state changes")
+        ## Cycle through our bulbs list and make sure our indicators match
         for bulbname in bulbnames:
+            # log.debug(" bulb: [{}], state: [{}]/[{}], dimmer: [{}]/[{}]".format(
+            #     bulbname, bulbs[bulbname].power, device_indicators[bulbname].fill,
+            #      bulbs[bulbname].dimmer, device_bars[bulbname].value))
+
             # Check displayed 'on/off' indicator status against up-to-date bulb state
-            if bulbs[bulbname].power == 'ON' and not device_indicators[bulbname]:
+            if bulbs[bulbname].power == 'ON' and not device_indicators[bulbname].fill:
                 new_messages_relevant = True
-            elif bulbs[bulbname].power == 'OFF' and device_indicators[bulbname]:
+                log.debug(" new state: {} power toggled on since last refresh".format(bulbname))
+            elif bulbs[bulbname].power == 'OFF' and device_indicators[bulbname].fill:
                 new_messages_relevant = True
+                log.debug(" new state: {} power toggled off since last refresh".format(bulbname))
             
             # Check displayed 'dimmer' status against up-to-date bulb state
             if bulbs[bulbname].dimmer != device_bars[bulbname].value:
+                log.debug(" new state: {} dimmer changed on since last refresh".format(bulbname))
                 new_messages_relevant = True
+
+    if new_messages_relevant:
+        log.debug("New messages indicate state change, setting up display refresh")
 
     ### Step 2: Handle keypad events
 
@@ -678,7 +690,11 @@ while True:
 
         ## Retrieve all new messages (after a reasonable delay) to make sure our internal state is up to date
         neopixels[pixel_busy_status] = (255,255,0)
-        time.sleep(result_message_delay)
+
+        if should_change_anything:
+            # Only sleep for results if we've actually commanded a state change in this loop
+            time.sleep(result_message_delay)
+
         retrieve_messages(mqtt_client)
         neopixels[pixel_busy_status] = (0,255,255)
 
