@@ -94,7 +94,7 @@ After using this code on a few MagTags for the last three months or so I noticed
 * If the WiFi connection drops becomes less reliable the MQTT library may throw an unhandled "PINGRESP" exception that causes the loop to exit
     * Addressed this by wrapping all `client.loop()` calls with a try/except that tries reconnecting to WiFi and the MQTT server if an error occurs
 * Bulb on/off and dimming status wasn't always accurate on display refresh
-    * Added some logic to continue `client.loop()`-ing if a new message was received until no new messages are left on the server
+    * Added some logic to continue `client.loop()`ing if a new message was received until no new messages are left on the server
     * Added a var at the top of the file for `result_message_delay` to allow some time for the bulbs to respond to commands with a `RESULT` after commands
 * A second tag connecting with the same client ID would result in the original tag being disconnected
     * Simply removed the custom "client ID" from the MQTT client setup, falling back on the random auto-generated name chosen by the client library.
@@ -104,14 +104,38 @@ After using this code on a few MagTags for the last three months or so I noticed
 
 In addition to fixing those quirks I added `adafruit_logging` to the project and set up some custom loggers.
 
+### Update: 2022/03/23
+
+Several edge-case type issues were found during more testing that required rethinking how WiFi connectivity and MQTT broker connectivity were managed and retried on failure.
+
+* Addressed Startup/Init Failures
+  * Secrets file is not present, contains no data, or contains default/demo data
+  * WiFi connect fails
+  * MQTT broker connect fails
+  * Initial `STATUS5`/`STATUS11` replies don't come in before display setup
+* Addressed Loop failures
+  * WiFi and/or MQTT server disconnect or become unreachable
+  * Display update includes partially or fully outdated per-bulb data
+* Minor Tweaks
+  * Added setting of hostname based on WiFi adapter MAC address
+  * Added debug information to display if debug logging is enabled
+  * Initial structural prep for breaking complex parts out into their own classes
+  * Log line, comment, readme cleanup
+
+Addressing these was a fun experiment in creative error handling in Python, something I've only really done to this extent in Java. Thankfully the models are similar and, even more handy, CircuitPython/MicroPython maintain the functionality required to get things done well.
+
+However, there was a lot of code added and shuffled around. As a result I've decided to maintain the "original", decidedly more simple, code in a different file - `tasmota-tag-code-v1.py`
+
 ## TODO
 
+* Consolidate reused or complex code in discrete external classes
+    * Any work in this direction should be done with the ultimate goal of creating one or more libraries or frameworks to accelerate and streamline similar projects in the future 
 * Investigate conversion to use `alarm`/deep sleep to massively increase battery life
     * As it is now a fully-charged 420 mAh battery will drain in less than 18 hours. But with the power-saving features available on the MagTag and some refactoring battery life of days, weeks, or even months could likely be accomplished, making this a much more useful "set up and forget" device!
 * Add a few easy-to-implement features for control/display of additional things
     * Add control of light color (RGB) and/or color temperature (CCT)
-    * Add control or status display for other Tasmota device types, like switches (smart plugs, relays, etc)
-    * Add display of sensor data from MQTT and/or influxdb sources, like temp, humidity, etc
+    * Add control or status display for other Tasmota device types, like switches (smart plugs, relays, etc.)
+    * Add display of sensor data from MQTT and/or influxdb sources, like temp, humidity, etc.
 
 ## Ref Links
 
