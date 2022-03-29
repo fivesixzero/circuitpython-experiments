@@ -6,7 +6,7 @@ Simple MagTag Tasmota bulb controller
 
 ## Setup
 
-1. Set up MagTag with CircuitPython 7.0+
+1. Set up [MagTag with CircuitPython 7.0+]https://learn.adafruit.com/adafruit-magtag/circuitpython)
 2. Copy required CircuitPython libraries to MagTag in lib directory
     * `adafruit_bitmap_font`
     * `adafruit_display_shapes`
