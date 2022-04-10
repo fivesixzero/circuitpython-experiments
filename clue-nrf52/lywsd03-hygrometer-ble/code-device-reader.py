@@ -63,7 +63,7 @@ if len(devices) > 0:
             text_labels[address] = lywsd03_label
 
     # Connect to devices and get data
-    loop_delay = 60
+    loop_delay = 300
     # print("Found [{}] listed devices to connect to".format(len(devices)))
     while True:
         for address in devices.keys():
@@ -93,6 +93,6 @@ if len(devices) > 0:
                         #     temp_humidity))
                         connection.disconnect()
 
-            time.sleep(300)
+        time.sleep(loop_delay)
 else:
     print("Found no active devices to connect to")
