@@ -1,5 +1,7 @@
 # `HX711` Load Cell Amplifier CircuitPython Demo
 
+<img width=500 src="./hx711-circuitpython.jpg">
+
 Just a quick demo to illustrate reading the ubiquitous and inexpensive `HX711` load cell amplifier with CircuitPython.
 
 This may be somewhat easy to convert into a proper device driver, given enough time.
