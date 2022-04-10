@@ -8,6 +8,8 @@ A collection of demos and experiments built with CircuitPython
 
 * [`apds-9960-testing`](./clue-nrf52/apds9960-testing)
     * A trip deep, deep down the rabbit-hole with the complex APDS-9960 proximity, gesture, and color/light sensor including copious test code, notes (and even a fancy Jupyter Notebook!) on gesture recognition via CircuitPython
+* [`lywsd03-hygrometer-ble`](./clue-nrf52/lywsd03-hygrometer-ble/)
+    * A quick experiment in reading Xiaomi `LYWSD03MMC`/`LYWSD03` Bluetooth Low Energy hygrometers using CircuitPython
 
 ### [Feather Bluefruit Sense](https://www.adafruit.com/product/4516)
 
