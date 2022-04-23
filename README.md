@@ -24,6 +24,8 @@ A collection of demos and experiments built with CircuitPython
     * Demo: Illustrating basic usage of the [RFM95W LoRa FeatherWing](https://www.adafruit.com/product/3231) for transmitting and receiving messages
 * [`hx711-load-cell-amplifier`](./feather-rp2040/hx711-load-cell-amplifier/)
     * A quick experiment in reading in data from the inexpensive and ubiquitous `HX711` load cell amplifier using CircuitPython
+* [`pio-hx711-driver`](./feather-rp2040/hx711-load-cell-amplifier/)
+    * Early development versions of a proper `HX711` CircuitPython device driver with both PIO and GPIO options
 
 ### [MacroPad RP2040](https://www.adafruit.com/product/5128)
 
