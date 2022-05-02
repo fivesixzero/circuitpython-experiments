@@ -24,6 +24,10 @@
 ## TODO: Assure accuracy of ADC count 24-bit int conversion
 ## TODO: Rework error/exception handling
 
+## Relevant docs:
+
+## Datasheet: <https://cdn.sparkfun.com/datasheets/Sensors/ForceFlex/hx711_english.pdf>
+## Sigrok Decoder API: <http://sigrok.org/wiki/Protocol_decoder_API>
 
 
 from common.srdhelper import bitpack
