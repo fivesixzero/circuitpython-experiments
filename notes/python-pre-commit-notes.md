@@ -1,17 +1,22 @@
 # Code Checking Workflow
 
-* `pre-commit` *code quality*
+* `pre-commit`/`black`/`pylint` *code quality*
 * `mypy` *typing*
+* `pylint` *code quality*
 * `sphinx` *doc building*
 
 ## `pre-commit`/`black`
 
 ```sh
-black --diff .\file.py
+pre-commit run --all-files
 ```
 
 ```sh
-pre-commit run --all-files
+black --diff .\file.py
+```
+
+```
+pylint .\dir\
 ```
 
 ## `mypy`
