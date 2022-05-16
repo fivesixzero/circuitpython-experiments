@@ -41,7 +41,7 @@ from hx711.hx711_pio import HX711_PIO
 pio_data = board.D25
 pio_clk = board.D24
 
-hx = HX711_PIO(pio_data, pio_clk, tare=False, scalar=417)
+hx = HX711_PIO(pio_data, pio_clk, tare=False, scalar=395.513)
 
 import keypad
 
@@ -361,6 +361,8 @@ while True:
         print("Tare requested, current offset: [{}]".format(hx.offset))
         hx.read(50)
         hx.tare()
+        hx.read(50)
+        hx.tare()
         print("Tare completed, new offset: [{}]".format(hx.offset))
         pixel.fill((0, 0, 0))
         weigh = True
@@ -392,6 +394,7 @@ while True:
 
     if weigh:
         pixel.fill((255, 255, 255))
+        pre_read = hx.read(50)
         reading = hx.read(50)
         reading_raw = hx.read_raw()
         print(
