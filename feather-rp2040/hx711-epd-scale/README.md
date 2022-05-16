@@ -238,8 +238,6 @@ Parts:
 * 4x `M3n` Nut
     * McMaster [`90592A085` ($1.44 for 100)](https://www.mcmaster.com/90592A085/)
 
-The anti-slip pads on the corners aren't required.
-
 Assembly:
 
 <https://help.prusa3d.com/guide/6-spool-holder-assembly_204973>

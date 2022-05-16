@@ -1,7 +1,7 @@
 import time
 import board
 
-i2c = board.STEMMA_I2C()
+# i2c = board.STEMMA_I2C()
 
 rtc_enabled = False
 
@@ -55,7 +55,7 @@ event_buffer = keypad.Event()
 
 BUTTON_A_PRESS = keypad.Event(0, True)
 BUTTON_B_PRESS = keypad.Event(1, True)
-BUTTON_C_PRESS = keypad.Event(1, True)
+BUTTON_C_PRESS = keypad.Event(2, True)
 
 presses = {
     0: False,
@@ -81,7 +81,7 @@ def wait_for_keypress(keys: keypad.Keys):
     while True:
         new_presses = get_presses(keys)
         
-        if new_presses[0] or new_presses[1]:
+        if new_presses[0] or new_presses[1] or new_presses[2]:
             break
         else:
             time.sleep(0.001)
@@ -91,9 +91,12 @@ import neopixel
 pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel.brightness = 1.0
 
-def keep_blinking(pixel, time_sec=1, delay=0.1, fill=(255, 255, 255), keys=None):
+def keep_blinking(pixel, time_sec=1, delay=0.1, fill=(255, 255, 255), keys=None, epd=None):
 
     start_time = time.monotonic()
+
+    if epd:
+        print("Blinking for EPD refresh, busy: {}".format(epd.busy))
 
     blink = True
     while blink:
@@ -113,6 +116,11 @@ def keep_blinking(pixel, time_sec=1, delay=0.1, fill=(255, 255, 255), keys=None)
         if now_time - start_time > time_sec:
             blink = False
 
+        if epd:
+            if not epd.busy:
+                print("Stopping EPD refresh blink, busy: {}, time: {}".format(epd.busy, now_time - start_time))
+                blink = False
+
 keep_blinking(pixel, fill=(0, 255, 0))
 
 import displayio
@@ -124,11 +132,12 @@ epd_sd_cs = board.D5
 epd_sram_cs = board.D6
 epd_cs = board.D9
 epd_dc = board.D10
-# epd_reset = board.D4 # no dedicated reset pin on FeatherWing, haven't soldered it yet
+epd_busy = board.D4  # no dedicated reset pin on FeatherWing, solder BUSY to D4
 
 spi = board.SPI()
 
 displayio.release_displays()
+# display_bus = displayio.FourWire(spi, command=epd_dc, chip_select=epd_cs, baudrate=1000000)
 display_bus = displayio.FourWire(spi, command=epd_dc, chip_select=epd_cs, baudrate=1000000)
 
 WIDTH = 296
@@ -292,14 +301,17 @@ display = adafruit_il0373.IL0373(
     width=WIDTH,
     height=HEIGHT,
     rotation=ROTATION,
-    # busy_pin=epd_busy,
+    busy_pin=epd_busy,
     highlight_color=HIGHLIGHT_COLOR,
+    seconds_per_frame=15,
 )
 
 display.show(splash)
 
 # Display setup complete, grab our first scale read and refresh that puppy
 pixel.fill((255, 255, 255))
+hx.read(50)
+hx.tare()
 hx.read(50)
 hx.tare()
 reading = hx.read(50)
@@ -323,7 +335,7 @@ if rtc_enabled:
         startup_time.tm_sec
     ))
 
-keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255))
+keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255), epd=display)
 
 
 # Final prep for loop
@@ -376,14 +388,14 @@ while True:
             time_left.text = get_status_time(startup_time)
 
         display.refresh()
-        keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255))
+        keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255), epd=display)
 
     if weigh:
         pixel.fill((255, 255, 255))
         reading = hx.read(50)
         reading_raw = hx.read_raw()
         print(
-            "[{: 8.2f} g] [{: 8} raw] offset: {}, scalar: {}".format(
+            "Weighed: [{: 8.2f} g] [{: 8} raw] offset: {}, scalar: {}".format(
                 reading, reading_raw, hx.offset, hx.scalar
             )
         )
@@ -391,5 +403,8 @@ while True:
         if rtc_enabled:
             time_left.text = get_status_time(startup_time)
         pixel.fill((0, 0, 0))
+        if display.busy:
+            keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255), epd=display)
         display.refresh()
-        keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255))
+        keep_blinking(pixel, time_sec=eink_refresh_delay, fill=(0, 0, 255), epd=display)
+    
