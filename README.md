@@ -39,6 +39,13 @@ A collection of demos and experiments built with CircuitPython
 * [`tasmota-tag`](./magtag-esp32-s2/tasmota-tag)
     * Functional proof of concept for control of Tasmota-flashed, MQTT-enabled LED lightbulbs using a MagTag running CircuitPython with the `adafruit_minimqtt` library.
 
+### [PyPortal](https://www.adafruit.com/product/4116)
+
+* [`touch-display`](./pyportal/touch-cursor)
+    * Touch display demo with auto-fading cursor and display dimming
+* [`octoprint-display`](./pyportal/octoprint-display)
+    * Octoprint API display showing printer status, temperature, and job time remaining status
+
 ### [Trinket M0](https://www.adafruit.com/product/3500)
 
 * [`light-up-loupe`](./trinket-m0/light-up-loupe)
