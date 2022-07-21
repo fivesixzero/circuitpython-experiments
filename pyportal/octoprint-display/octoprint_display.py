@@ -1,5 +1,5 @@
 import board
-# import gc
+import gc
 import displayio
 # import terminalio
 from adafruit_bitmap_font import bitmap_font
@@ -17,17 +17,17 @@ import adafruit_imageload
 from octoprint_api import OctoprintAPI
 import touch_display
 
-TABS_FONT_PATH = "/fonts/Helvetica-Bold-24.bdf"
-TITLE_FONT_PATH = "/fonts/Helvetica-Bold-16.bdf"
-INFO_FONT_PATH = "/fonts/Arial-Italic-12.bdf"
-FIXED_NUMBERS_FONT_PATH = "/fonts/Consolas-20.bdf"
-FIXED_NUMBERS_SMALL_FONT_PATH = "/fonts/Consolas-numbers-only-12.bdf"
+# TABS_FONT_PATH = "/fonts/Helvetica-Bold-24.bdf"
+# TITLE_FONT_PATH = "/fonts/Helvetica-Bold-16.bdf"
+# INFO_FONT_PATH = "/fonts/Arial-Italic-12.bdf"
+# FIXED_NUMBERS_FONT_PATH = "/fonts/Consolas-20.bdf"
+# FIXED_NUMBERS_SMALL_FONT_PATH = "/fonts/Consolas-numbers-only-12.bdf"
 
-FONT_TABS = bitmap_font.load_font(TABS_FONT_PATH)
-FONT_TITLES = bitmap_font.load_font(TITLE_FONT_PATH)
-FONT_INFO = bitmap_font.load_font(INFO_FONT_PATH)
-FONT_FIXED_NUMBERS = bitmap_font.load_font(FIXED_NUMBERS_FONT_PATH)
-FONT_FIXED_NUMBERS_SMALL = bitmap_font.load_font(FIXED_NUMBERS_SMALL_FONT_PATH)
+FONT_TABS = bitmap_font.load_font("/fonts/Helvetica-Bold-24.bdf")
+FONT_TITLES = bitmap_font.load_font("/fonts/Helvetica-Bold-16.bdf")
+FONT_INFO = bitmap_font.load_font("/fonts/Arial-Italic-12.bdf")
+FONT_FIXED_NUMBERS = bitmap_font.load_font("/fonts/Consolas-20.bdf")
+FONT_FIXED_NUMBERS_SMALL = bitmap_font.load_font("/fonts/Consolas-numbers-only-12.bdf")
 
 class OctoDisplay(touch_display.TouchDisplay):
 
@@ -40,8 +40,7 @@ class OctoDisplay(touch_display.TouchDisplay):
 
         self._api = OctoprintAPI(portal)
         portal.network.connect()
-
-        self._font_tabs = FONT_TABS
+        gc.collect()
 
         self._tab_active_bmp = "bmps/active_tab_sprite_desaturated_30.bmp"
         self._tab_active_color = 0x228847
@@ -55,7 +54,12 @@ class OctoDisplay(touch_display.TouchDisplay):
             ("Misc", "Misc Details")
         ]
 
-        self._set_up_tab_layout()
+        self._set_up_tab_layout(
+            "bmps/active_tab_sprite_desaturated_30.bmp",
+            0x228847,
+            "bmps/inactive_tab_sprite_desaturated_30.bmp",
+            0x14512A
+        )
 
     def get_touch(self):
         touch_event = super().get_touch()
@@ -77,22 +81,30 @@ class OctoDisplay(touch_display.TouchDisplay):
 
         return touch_event
 
-    def _set_up_tab_layout(self):
+    def _set_up_tab_layout(self, active_bmp_path, active_bmp_color, inactive_bmp_path, inactive_bmp_color):
+
+        print("pre-layout: {}".format(gc.mem_free()))
         self._layout = TabLayout(
             x=0,
             y=0,
             display=self._disp,
             tab_text_scale=1,
-            custom_font=self._font_tabs,
-            showing_tab_spritesheet=self._tab_active_bmp,
-            showing_tab_text_color=self._tab_active_color,
-            inactive_tab_spritesheet=self._tab_inactive_bmp,
-            inactive_tab_text_color=self._tab_inactive_color,
+            custom_font=FONT_TABS,
+            showing_tab_spritesheet=active_bmp_path,
+            showing_tab_text_color=active_bmp_color,
+            inactive_tab_spritesheet=inactive_bmp_path,
+            inactive_tab_text_color=inactive_bmp_color,
             inactive_tab_transparent_indexes=(0, 1),
             showing_tab_transparent_indexes=(0, 1),
             tab_count=4
         )
+        print("post-layout: {}".format(gc.mem_free()))
 
+        print("pre-layout-gc: {}".format(gc.mem_free()))
+        gc.collect()
+        print("post-layout-gc: {}".format(gc.mem_free()))
+
+        print("pre-tabs: {}".format(gc.mem_free()))
         for page in self._page_names:
             # page_group = self._set_up_page(page[1])
             if page[0] == "Octo":
@@ -102,6 +114,7 @@ class OctoDisplay(touch_display.TouchDisplay):
                 page_group = BaseGroup(page[1])
 
             self._layout.add_content(page_group, page[0])
+        print("post-tabs: {}".format(gc.mem_free()))
 
         # add it to the group that is showing on the display
         if self._cursor:
@@ -118,7 +131,7 @@ class BaseGroup(displayio.Group):
     def __init__(self, title_text: str):
         super().__init__()
 
-        self._font_titles = FONT_TITLES
+        # self._font_titles = FONT_TITLES
 
         self._WIDTH = board.DISPLAY.width
         self._HEIGHT = board.DISPLAY.height
@@ -134,7 +147,7 @@ class BaseGroup(displayio.Group):
 
         # Add title text
         self.page_title = Label(
-            font=self._font_titles,
+            font=FONT_TITLES,
             scale=1,
             text=title_text,
             anchor_point=(0.5, 0),  #  Cetered
@@ -151,21 +164,34 @@ class OctoprintGroup(BaseGroup):
         super().__init__(title_text)
         self._api = api
 
-        self._font_titles = FONT_TITLES
-        self._font_info = FONT_INFO
-        self._font_fixed_numbers = FONT_FIXED_NUMBERS
-        self._font_fixed_numbers_small = FONT_FIXED_NUMBERS_SMALL
-
+        print("pre-init-content: {}".format(gc.mem_free()))
         self._init_content()
-        self.update_all()
+        print("post-init-content: {}".format(gc.mem_free()))
+        gc.collect()
+        print("post-init-content-gc: {}".format(gc.mem_free()))
+        # self.update_all()
+
+        print("pre-job: {}".format(gc.mem_free()))
+        self.update_job()
+        gc.collect()
+        print("post-job: {}".format(gc.mem_free()))
+        self.update_job_thumbnail()
+        gc.collect()
+        print("pre-status: {}".format(gc.mem_free()))
+        self.update_status()
+        gc.collect()
+        print("post-status: {}".format(gc.mem_free()))
+        print("post-status-gc: {}".format(gc.mem_free()))
+        print("pre-temp: {}".format(gc.mem_free()))
+        self.update_temp()
+        gc.collect()
+        print("post-temp: {}".format(gc.mem_free()))
+        print("pre-temp-graphs: {}".format(gc.mem_free()))
+        self.update_temp_graphs()
+        print("post-temp-graphs: {}".format(gc.mem_free()))
 
     def _init_content(self):
 
-        image, palette = adafruit_imageload.load("bmps/prusaslicer-8-color-4-bit_159x90.bmp", bitmap=displayio.Bitmap, palette=displayio.Palette)
-        prusaslicer_thumbnail = displayio.TileGrid(image, pixel_shader=palette, x=160, y=120)
-        self.append(prusaslicer_thumbnail)
-
-        # TODO: Implement status text and indicator shapes/labels
         ## Connection status
         # connection_status_indicator = None  # api/connection current/state
         # connection_status_text_label = None  # api/connection current/state
@@ -180,7 +206,7 @@ class OctoprintGroup(BaseGroup):
 
         # Printer Status Title
         self.printer_status_title = Label(  # api/printer state/text
-            font=self._font_titles, text="Printer Status")
+            font=FONT_TITLES, text="Printer Status")
         self.printer_status_title.anchor_point=(0.5, 0.5)
         self.printer_status_title.anchored_position=((self._WIDTH//2)//2, 34)
         self.append(self.printer_status_title)
@@ -191,7 +217,7 @@ class OctoprintGroup(BaseGroup):
         self.append(self.printer_status_indicator)
 
         self.printer_status_text_label = Label(  # api/printer state/text
-            font=self._font_info, text="unknown")
+            font=FONT_INFO, text="unknown")
         self.printer_status_text_label.anchor_point=(0.0, 0.5)
         self.printer_status_text_label.anchored_position=(24, 56)
         self.append(self.printer_status_text_label)
@@ -199,32 +225,32 @@ class OctoprintGroup(BaseGroup):
         # Printer Temperatures
 
         printer_status_temp_bed_title = Label(  # api/printer temperature/bed/actual
-            font=self._font_titles, scale=1, text="Bed")
+            font=FONT_TITLES, scale=1, text="Bed")
         printer_status_temp_bed_title.anchor_point=(0.5, 0.5)
         printer_status_temp_bed_title.anchored_position=((self._WIDTH//2)//4, 83)
         self.append(printer_status_temp_bed_title)
 
         printer_status_temp_tool_title = Label(  # api/printer temperature/bed/actual
-            font=self._font_titles, scale=1, text="Tool")
+            font=FONT_TITLES, scale=1, text="Tool")
         printer_status_temp_tool_title.anchor_point=(0.5, 0.5)
         printer_status_temp_tool_title.anchored_position=(((self._WIDTH//2)//4) * 3, 83)
         self.append(printer_status_temp_tool_title)
 
         self.printer_status_temp_bed = Label(  # api/printer temperature/bed/actual
-            font=self._font_fixed_numbers, scale=1, text="000.0", color=0xFF9811)
+            font=FONT_FIXED_NUMBERS, scale=1, text="000.0", color=0xFF9811)
         self.printer_status_temp_bed.anchor_point=(0.5, 0.5)
         self.printer_status_temp_bed.anchored_position=((self._WIDTH//2)//4, 105)
         self.append(self.printer_status_temp_bed)
         # printer_status_temp_bed_target = None  # api/printer temperature/bed/target
 
         self.printer_status_temp_tool = Label(  # api/printer temperature/tool/actual
-            font=self._font_fixed_numbers, scale=1, text="000.0", color=0xFF1111)
+            font=FONT_FIXED_NUMBERS, scale=1, text="000.0", color=0xFF1111)
         self.printer_status_temp_tool.anchor_point=(0.5, 0.5)
         self.printer_status_temp_tool.anchored_position=(((self._WIDTH//2)//4) * 3, 105)
         self.append(self.printer_status_temp_tool)
         # printer_status_temp_tool_target = None  # api/printer temperature/tool/target
 
-        # # Printer Temperatures Graph
+        # Printer Temperatures Graph
         self.temp_graph_x = 0
         self.temp_graph_y = 121
         self.temp_graph_width = 160
@@ -256,7 +282,7 @@ class OctoprintGroup(BaseGroup):
 
         # Job Status Title
         self.job_status_title = Label(  # api/printer state/text
-            font=self._font_titles, text="Job Status")
+            font=FONT_TITLES, text="Job Status")
         self.job_status_title.anchor_point=(0.5, 0.5)
         self.job_status_title.anchored_position=(((self._WIDTH//2)//2) * 3, 34)
         self.append(self.job_status_title)
@@ -274,7 +300,7 @@ class OctoprintGroup(BaseGroup):
 
         self.job_progress_percent_string = "{:.1f} %"
         self.job_progress_percent_label = Label(  # api/job progress/completion
-            font=self._font_fixed_numbers_small, text=self.job_progress_percent_string.format(100.0))
+            font=FONT_FIXED_NUMBERS_SMALL, text=self.job_progress_percent_string.format(100.0))
         self.job_progress_percent_label.anchor_point=(0.5, 0.5)
         self.job_progress_percent_label.anchored_position=(267 + 26, (progress_bar_y + (progress_bar_height // 2)))
         self.append(self.job_progress_percent_label)
@@ -284,25 +310,25 @@ class OctoprintGroup(BaseGroup):
         self.job_time_string = "{:.1f} hr"
 
         job_time_total_title = Label(
-            font=self._font_titles, scale=1, text="Total")
+            font=FONT_TITLES, scale=1, text="Total")
         job_time_total_title.anchor_point=(0.5, 0.5)
         job_time_total_title.anchored_position=((((self._WIDTH//2)//4) * 5) + 3, 83)
         self.append(job_time_total_title)
 
         self.job_time_total_label = Label(  # api/job progress/printTime  (in seconds)
-            font=self._font_fixed_numbers, text=self.job_time_string.format(0.0))
+            font=FONT_FIXED_NUMBERS, text=self.job_time_string.format(0.0))
         self.job_time_total_label.anchor_point=(0.5, 0.5)
         self.job_time_total_label.anchored_position=((((self._WIDTH//2)//4) * 5) + 3, 105)
         self.append(self.job_time_total_label)
 
         job_time_remaining_title = Label(
-            font=self._font_titles, scale=1, text="Left")
+            font=FONT_TITLES, scale=1, text="Left")
         job_time_remaining_title.anchor_point=(0.5, 0.5)
         job_time_remaining_title.anchored_position=((((self._WIDTH//2)//4) * 7) - 3, 83)
         self.append(job_time_remaining_title)
 
         self.job_time_remaining_label = Label(  # api/job progress/printTime  (in seconds)
-            font=self._font_fixed_numbers, text=self.job_time_string.format(0.0))
+            font=FONT_FIXED_NUMBERS, text=self.job_time_string.format(0.0))
         self.job_time_remaining_label.anchor_point=(0.5, 0.5)
         self.job_time_remaining_label.anchored_position=((((self._WIDTH//2)//4) * 7) - 3, 105)
         self.append(self.job_time_remaining_label)
@@ -315,6 +341,9 @@ class OctoprintGroup(BaseGroup):
 
         printer_name = status_data["options"]["printerProfiles"][0]["name"]
         connection_state = status_data["current"]["state"]
+
+        del status_data
+        gc.collect()
 
         self.printer_status_title.text = printer_name
 
@@ -332,14 +361,12 @@ class OctoprintGroup(BaseGroup):
         self.printer_status_text_label.text = connection_state
 
     def update_temp(self):
+        gc.collect()
         temp_tool = self._api.temp(item="tool0")
         temp_bed = self._api.temp(item="bed")
 
         current_temp_tool = float(temp_tool)
         current_temp_bed = float(temp_bed)
-
-        # self.printer_status_temp_tool.text = "{:5.2f}°".format(current_temp_tool)
-        # self.printer_status_temp_bed.text = "{:4.2f}°".format(current_temp_bed)
 
         self.printer_status_temp_tool.text = "{:5.2f}".format(current_temp_tool)
         self.printer_status_temp_bed.text = "{:4.2f}".format(current_temp_bed)
@@ -370,45 +397,10 @@ class OctoprintGroup(BaseGroup):
         job_progress_percent = job_json['progress']['completion']
         job_elapsed_sec = job_json['progress']['printTime']
         job_remaining_sec = job_json['progress']['printTimeLeft']
+        self.job_thumbnail_path = job_json['job']['file']['path'].strip(".gcode")
 
-        # job_start_epoch = job_json['job']['date']
-        # job_file_display_name = job_json['job']['file']['display']
-        # job_file_path = job_json['job']['file']['path']
-
-        # file_data_required = False
-        # if file_data_required:
-        #     file_json = self._api.get_file_info(job_file_path)
-
-        #     file_date_epoch = file_json['date']
-
-        #     ## Analysis sometimes isn't available on newly uploaded gcode files
-        #     try:
-        #         gcode_analysis = file_json['gcodeAnalysis']
-        #     except:
-        #         gcode_analysis = None
-
-        #     if gcode_analysis:
-        #         file_filament_volume_total = 0.0
-        #         file_filament_length_total = 0.0
-        #         for tool in gcode_analysis['filament']:
-        #             file_filament_volume_total += float(tool['volume'])
-        #             file_filament_length_total += float(tool['length'])
-
-        #         file_dimensions = gcode_analysis['dimensions']
-        #         file_printing_area = gcode_analysis['printingArea']
-        #         file_estimated_print_time = gcode_analysis['estimatedPrintTime']
-        #     else:
-        #         file_filament_volume_total = None
-        #         file_filament_length_total = None
-        #         file_dimensions = None
-        #         file_printing_area = None
-        #         file_estimated_print_time = None
-
-        #     ## Thumbnails won't be available if a thumbnail generating plugin hasn't been installed
-        #     try:
-        #         file_thumbnail_path = file_json['thumbnail']
-        #     except:
-        #         file_thumbnail_path = None
+        del job_json
+        gc.collect()
 
         self.job_progress_bar.value = float(job_progress_percent)
         self.job_progress_percent_label.text = self.job_progress_percent_string.format(job_progress_percent)
@@ -416,11 +408,22 @@ class OctoprintGroup(BaseGroup):
         self.job_time_remaining_label.text = self.job_time_string.format(job_remaining_sec / 3600)
         self.job_time_total_label.text = self.job_time_string.format((job_elapsed_sec + job_remaining_sec) / 3600)
 
-    def update_all(self):
-        self.update_status()
-        self.update_temp()
-        self.update_temp_graphs()
-        self.update_job()
+    def update_job_thumbnail(self):
+        self._api.update_thumbnail(self.job_thumbnail_path)
+        print("post-api-thumb-update: {}".format(gc.mem_free()))
+        gc.collect()
+        print("post-api-thumb-update-gc: {}".format(gc.mem_free()))
+
+        print("pre-imgload: {}".format(gc.mem_free()))
+        bitmap = displayio.OnDiskBitmap("/sd/thumb.bmp")
+        print("post-imgload: {}".format(gc.mem_free()))
+        gc.collect()
+        print("post-imgload-gc: {}".format(gc.mem_free()))
+
+        print("pre-tilegrid: {}".format(gc.mem_free()))
+        self.prusaslicer_thumbnail = displayio.TileGrid(bitmap, pixel_shader=bitmap.pixel_shader, x=161, y=121)
+        print("post-tilegrid: {}".format(gc.mem_free()))
+        self.append(self.prusaslicer_thumbnail)
 
     def build_temp_graph(self, graph_x, graph_y, graph_width, graph_height, line_color, temp_vals, temp_min, temp_max):
         graph = displayio.Group(x=0, y=0)

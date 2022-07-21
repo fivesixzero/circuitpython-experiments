@@ -1,21 +1,23 @@
-import adafruit_pyportal
+import gc
+from adafruit_pyportal import PyPortal
+from io import BytesIO
 
-CONNECTION_STATE_URL = "/connection"
-PRINTER_STATE_URL = "/printer"
-SERVER_STATE_URL = "/server"
-SETTINGS_URL = "/settings"
-TEMP_HISTORY_TOOL_URL = "/printer/tool"
-TEMP_HISTORY_BED_URL = "/printer/bed"
-JOB_URL = "/job"
-FILE_URL = "/files"
+CONNECTION_STATE_URL = "/api/connection"
+PRINTER_STATE_URL = "/api/printer"
+SERVER_STATE_URL = "/api/server"
+SETTINGS_URL = "/api/settings"
+TEMP_HISTORY_TOOL_URL = "/api/printer/tool"
+TEMP_HISTORY_BED_URL = "/api/printer/bed"
+JOB_URL = "/api/job"
+FILE_URL = "/api/files"
 
-FILAMENT_WEIGHT_URL = "/plugin/filament_scale?command=weight"
-SPOOL_WEIGHT_URL = "/plugin/filament_scale?command=spool_weight"
-SCALE_TYPE_URL = "/plugin/filament_scale?command=scale_type"
+FILAMENT_WEIGHT_URL = "/api/plugin/filament_scale?command=weight"
+SPOOL_WEIGHT_URL = "/api/plugin/filament_scale?command=spool_weight"
+SCALE_TYPE_URL = "/api/plugin/filament_scale?command=scale_type"
 
 class OctoprintAPI():
 
-    def __init__(self, portal: adafruit_pyportal.PortalBase=None, secrets=None):
+    def __init__(self, portal, secrets=None):
 
         if not secrets:
             from octoprint_secrets import octoprint_secrets as secrets
@@ -28,7 +30,7 @@ class OctoprintAPI():
         if portal:
             self._portal = portal
         else:
-            self._portal = adafruit_pyportal.PyPortal()
+            self._portal = PyPortal()
 
     def ping(self):
         is_up = True
@@ -63,6 +65,7 @@ class OctoprintAPI():
 
         path = [item,"actual"]
 
+        gc.collect()
         response = self._portal.network.fetch_data(request_url, headers=self.api_headers, json_path=path)
 
         return response[0]
@@ -81,7 +84,11 @@ class OctoprintAPI():
 
         return temps
 
-    # No matter how its done this tends to use way, way too much memory to be useful, unfortunately
+    def update_thumbnail(self, thumbnail_path, sd_path="/sd/"):
+        url = self.base_url + "plugin/prusaslicerthumbnails/thumbnail/" + thumbnail_path + ".bmp"
+        sd_file_path = sd_path + "thumb.bmp"
+        self._portal.wget(url, sd_file_path, chunk_size=2048)
+
     # def temp_history_spread(self, entries, spacing, tool=False, target=False):
     #     limit = entries * spacing
     #     request_url = self.base_url + TEMP_HISTORY_TOOL_URL + f"?history=true&limit={limit}"
